@@ -1,0 +1,826 @@
+<!DOCTYPE html>
+<html lang="en" style="color-scheme: dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Option B: Dealer's Table - Lucky Duck Dealz</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;0,9..40,800;0,9..40,900;1,9..40,400&family=DM+Serif+Display&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    /* Warm dark palette: felt green table + gold accents */
+    --bg: #0e1210;
+    --surface: #151c18;
+    --card: #1a231e;
+    --card-hover: #1f2a24;
+    --felt: #182018;
+    --border: rgba(255,255,255,0.05);
+    --border-gold: rgba(232,176,58,0.18);
+
+    /* From the duck */
+    --gold: #e8b03a;
+    --gold-dim: rgba(232,176,58,0.10);
+    --gold-glow: rgba(232,176,58,0.06);
+    --cyan: #2bc5e6;
+    --cyan-dim: rgba(43,197,230,0.08);
+    --orange: #e8933a;
+
+    /* Semantic */
+    --buy: #3ae88f;
+    --buy-dim: rgba(58,232,143,0.08);
+    --buy-surface: rgba(58,232,143,0.04);
+    --consider: #e8c93a;
+    --consider-dim: rgba(232,201,58,0.08);
+    --pass: #e85a5a;
+    --pass-dim: rgba(232,90,90,0.08);
+
+    /* Text */
+    --t1: #e8e4dc;
+    --t2: #8a8578;
+    --t3: #5a564c;
+  }
+
+  body {
+    font-family: 'DM Sans', system-ui, sans-serif;
+    background: var(--bg);
+    color: var(--t1);
+    width: 100vw;
+    height: 100vh;
+    overflow: hidden;
+    position: relative;
+  }
+
+  /* Subtle texture */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    z-index: 0;
+    opacity: 0.015;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='1.2' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+    background-repeat: repeat;
+  }
+
+  /* Warm vignette */
+  body::after {
+    content: '';
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    z-index: 0;
+    background: radial-gradient(ellipse at center, transparent 40%, rgba(0,0,0,0.4) 100%);
+  }
+
+  .serif { font-family: 'DM Serif Display', serif; }
+
+  /* Cards: opaque, warm, stacked feel */
+  .card {
+    background: var(--card);
+    border-radius: 14px;
+    border: 1px solid var(--border);
+    padding: 18px 20px;
+    transition: border-color 0.3s ease, background 0.3s ease;
+  }
+  .card:hover {
+    background: var(--card-hover);
+    border-color: rgba(255,255,255,0.08);
+  }
+  .card.highlight {
+    border-color: var(--border-gold);
+    box-shadow: 0 0 30px var(--gold-glow);
+  }
+
+  .label {
+    font-size: 10px;
+    font-weight: 700;
+    color: var(--t3);
+    text-transform: uppercase;
+    letter-spacing: 0.14em;
+    margin-bottom: 10px;
+  }
+  .hero-num {
+    font-family: 'DM Serif Display', serif;
+    font-size: 32px;
+    letter-spacing: -0.02em;
+    line-height: 1;
+    font-variant-numeric: tabular-nums;
+  }
+
+  /* Header */
+  header {
+    position: relative;
+    z-index: 100;
+    height: 56px;
+    padding: 0 24px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    border-bottom: 1px solid var(--border);
+    background: linear-gradient(180deg, rgba(232,176,58,0.02) 0%, transparent 100%);
+  }
+  .header-left {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+  }
+  .hamburger {
+    width: 38px;
+    height: 38px;
+    border-radius: 10px;
+    background: rgba(255,255,255,0.03);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: none;
+    cursor: pointer;
+    transition: background 0.2s;
+  }
+  .hamburger:hover { background: var(--gold-dim); }
+  .brand {
+    font-family: 'DM Serif Display', serif;
+    font-size: 22px;
+    color: var(--gold);
+    letter-spacing: -0.01em;
+  }
+  .brand-sub {
+    font-size: 11px;
+    color: var(--t3);
+    font-weight: 500;
+    margin-left: 6px;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+  }
+  .status-pills {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .pill {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 16px;
+    border-radius: 8px;
+    font-size: 11px;
+    font-weight: 600;
+  }
+  .pill.buy { background: var(--buy-dim); color: var(--buy); }
+  .pill.muted { background: rgba(255,255,255,0.02); color: var(--t3); font-weight: 400; }
+  .pill .dot {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: var(--buy);
+    box-shadow: 0 0 10px rgba(58,232,143,0.4);
+    animation: pulse-dot 2s ease-in-out infinite;
+  }
+  @keyframes pulse-dot {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.5; }
+  }
+
+  /* Main layout */
+  .main {
+    position: relative;
+    z-index: 10;
+    height: calc(100vh - 56px);
+    display: grid;
+    grid-template-columns: 360px 1fr;
+    overflow: hidden;
+  }
+
+  /* Left panel: tall manifest card */
+  .left {
+    padding: 20px;
+    overflow-y: auto;
+    border-right: 1px solid var(--border);
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+  .left::-webkit-scrollbar { width: 2px; }
+  .left::-webkit-scrollbar-track { background: transparent; }
+  .left::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.04); border-radius: 2px; }
+
+  /* Manifest-style header card */
+  .manifest-header {
+    background: var(--card);
+    border-radius: 14px;
+    border: 1px solid var(--border-gold);
+    padding: 22px;
+    position: relative;
+    overflow: hidden;
+  }
+  .manifest-header::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 3px;
+    background: linear-gradient(90deg, var(--gold), var(--orange), var(--gold));
+  }
+  .load-id {
+    font-size: 10px;
+    font-weight: 700;
+    color: var(--gold);
+    letter-spacing: 0.10em;
+    margin-bottom: 8px;
+    text-transform: uppercase;
+  }
+  .load-title {
+    font-family: 'DM Serif Display', serif;
+    font-size: 26px;
+    letter-spacing: -0.02em;
+    line-height: 1.15;
+    margin-bottom: 10px;
+    color: var(--t1);
+    text-wrap: balance;
+  }
+  .load-meta {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 8px;
+  }
+  .load-source {
+    font-size: 12px;
+    color: var(--t2);
+  }
+
+  /* Grade: big, bold, centered */
+  .grade-block {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 14px 18px;
+    border-radius: 12px;
+    margin-top: 4px;
+  }
+  .grade-block.buy { background: var(--buy-surface); border: 1px solid rgba(58,232,143,0.12); }
+  .grade-score {
+    font-family: 'DM Serif Display', serif;
+    font-size: 44px;
+    line-height: 1;
+    font-variant-numeric: tabular-nums;
+  }
+  .grade-label {
+    font-size: 13px;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+  }
+  .grade-sub {
+    font-size: 11px;
+    color: var(--t2);
+    margin-top: 2px;
+  }
+
+  .auction-bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px 14px;
+    border-radius: 10px;
+    background: rgba(232,147,58,0.06);
+    border: 1px solid rgba(232,147,58,0.10);
+  }
+  .auction-label {
+    font-size: 10px;
+    color: var(--t3);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    font-weight: 600;
+  }
+  .auction-time {
+    font-family: 'DM Serif Display', serif;
+    font-size: 18px;
+    color: var(--orange);
+    font-variant-numeric: tabular-nums;
+  }
+
+  /* Category list */
+  .cat-list { display: flex; flex-direction: column; gap: 6px; }
+  .cat-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 6px 0;
+  }
+  .cat-bar-track {
+    flex: 1;
+    height: 6px;
+    border-radius: 3px;
+    background: rgba(255,255,255,0.03);
+    overflow: hidden;
+  }
+  .cat-bar-fill {
+    height: 100%;
+    border-radius: 3px;
+    transition: width 0.5s ease;
+  }
+  .cat-name {
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--t2);
+    width: 90px;
+    flex-shrink: 0;
+  }
+  .cat-pct {
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--t1);
+    width: 36px;
+    text-align: right;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .cta {
+    width: 100%;
+    padding: 14px 0;
+    border-radius: 10px;
+    background: var(--gold);
+    color: var(--bg);
+    font-family: 'DM Sans', system-ui;
+    font-size: 13px;
+    font-weight: 700;
+    letter-spacing: 0.02em;
+    border: none;
+    cursor: pointer;
+    transition: transform 0.15s ease, box-shadow 0.15s ease;
+  }
+  .cta:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 6px 24px rgba(232,176,58,0.2);
+  }
+  .cta:active { transform: scale(0.97); }
+
+  /* Right panel */
+  .right {
+    padding: 20px 24px;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+  }
+  .right::-webkit-scrollbar { width: 2px; }
+  .right::-webkit-scrollbar-track { background: transparent; }
+  .right::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.04); border-radius: 2px; }
+
+  /* Metrics row: horizontal ledger style */
+  .metrics-row {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 12px;
+  }
+  .metric-card {
+    background: var(--card);
+    border-radius: 12px;
+    border: 1px solid var(--border);
+    padding: 16px 18px;
+    transition: border-color 0.2s;
+  }
+  .metric-card:hover { border-color: rgba(255,255,255,0.08); }
+  .metric-sub {
+    font-size: 10px;
+    color: var(--t3);
+    margin-top: 4px;
+  }
+
+  /* Bento */
+  .bento {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+  }
+  .span-full { grid-column: 1 / -1; }
+
+  /* Real load bar */
+  .bar-track {
+    height: 28px;
+    border-radius: 6px;
+    overflow: hidden;
+    display: flex;
+    background: rgba(255,255,255,0.02);
+    margin-bottom: 10px;
+  }
+  .bar-seg {
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 11px;
+    font-weight: 700;
+    transition: width 0.6s ease;
+  }
+  .bar-legend {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  .bar-legend-left {
+    display: flex;
+    gap: 16px;
+  }
+  .bar-legend-item {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 11px;
+    color: var(--t2);
+  }
+  .bar-legend-item .dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 2px;
+  }
+  .bar-legend-right {
+    display: flex;
+    gap: 18px;
+    font-size: 13px;
+    font-weight: 700;
+  }
+
+  /* Score list */
+  .score-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 8px 12px;
+    border-radius: 8px;
+    margin-bottom: 4px;
+    border-left: 3px solid transparent;
+  }
+  .score-item.pos { background: var(--buy-dim); border-left-color: var(--buy); }
+  .score-item.neu { background: var(--consider-dim); border-left-color: var(--consider); }
+  .score-item.neg { background: var(--pass-dim); border-left-color: var(--pass); }
+  .score-text {
+    font-size: 12px;
+    color: var(--t2);
+  }
+
+  /* Value dist: horizontal bars */
+  .val-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 8px;
+  }
+  .val-label {
+    font-size: 11px;
+    color: var(--t3);
+    font-weight: 600;
+    width: 50px;
+    text-align: right;
+    font-variant-numeric: tabular-nums;
+  }
+  .val-track {
+    flex: 1;
+    height: 10px;
+    border-radius: 4px;
+    background: rgba(255,255,255,0.02);
+    overflow: hidden;
+  }
+  .val-fill {
+    height: 100%;
+    border-radius: 4px;
+    transition: width 0.5s ease;
+  }
+  .val-count {
+    font-size: 11px;
+    color: var(--t2);
+    font-weight: 600;
+    width: 40px;
+    font-variant-numeric: tabular-nums;
+  }
+
+  /* Confidence */
+  .conf-big {
+    display: flex;
+    align-items: baseline;
+    gap: 4px;
+    margin-bottom: 6px;
+  }
+  .conf-score {
+    font-family: 'DM Serif Display', serif;
+    font-size: 36px;
+    line-height: 1;
+    font-variant-numeric: tabular-nums;
+  }
+  .conf-unit { font-size: 16px; color: var(--t3); }
+  .validate-btn {
+    width: 100%;
+    margin-top: 12px;
+    padding: 10px;
+    border-radius: 8px;
+    border: 1px solid var(--border-gold);
+    background: transparent;
+    color: var(--gold);
+    font-family: inherit;
+    font-size: 12px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: background 0.2s;
+    letter-spacing: 0.02em;
+  }
+  .validate-btn:hover { background: var(--gold-dim); }
+
+  /* Top items: horizontal scrolling strip */
+  .items-strip {
+    display: flex;
+    gap: 8px;
+    overflow-x: auto;
+    padding-bottom: 4px;
+  }
+  .items-strip::-webkit-scrollbar { height: 2px; }
+  .items-strip::-webkit-scrollbar-track { background: transparent; }
+  .items-strip::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.04); }
+  .strip-item {
+    flex-shrink: 0;
+    width: 140px;
+    background: var(--card);
+    border-radius: 10px;
+    border: 1px solid var(--border);
+    padding: 12px;
+    transition: border-color 0.2s;
+  }
+  .strip-item:hover { border-color: rgba(255,255,255,0.08); }
+  .strip-item-name {
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--t1);
+    margin-bottom: 2px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .strip-item-cat {
+    font-size: 10px;
+    color: var(--t3);
+    margin-bottom: 6px;
+  }
+  .strip-item-price {
+    font-family: 'DM Serif Display', serif;
+    font-size: 16px;
+    font-variant-numeric: tabular-nums;
+  }
+
+  /* SKU alert */
+  .sku-alert {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+    padding: 12px 16px;
+    border-radius: 10px;
+    background: var(--pass-dim);
+    border-left: 3px solid var(--pass);
+  }
+  .sku-label {
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--pass);
+  }
+  .sku-tag {
+    font-size: 11px;
+    color: var(--t2);
+    background: rgba(0,0,0,0.3);
+    padding: 4px 10px;
+    border-radius: 6px;
+  }
+  .sku-tag .count { color: var(--pass); font-weight: 700; }
+
+  /* Concept label */
+  .concept-label {
+    position: fixed;
+    bottom: 16px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 200;
+    background: var(--gold-dim);
+    border: 1px solid var(--border-gold);
+    padding: 8px 24px;
+    border-radius: 8px;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--gold);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+      animation-duration: 0.01ms !important;
+      transition-duration: 0.01ms !important;
+    }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="header-left">
+    <button class="hamburger" aria-label="Open load drawer">
+      <svg width="18" height="14" viewBox="0 0 18 14" fill="none"><rect y="0" width="18" height="2" rx="1" fill="#8a8578"/><rect y="6" width="18" height="2" rx="1" fill="#8a8578"/><rect y="12" width="18" height="2" rx="1" fill="#8a8578"/></svg>
+    </button>
+    <span class="brand">Lucky Duck</span>
+    <span class="brand-sub">Dealz</span>
+  </div>
+  <div class="status-pills">
+    <div class="pill buy"><div class="dot"></div> 2 Strong</div>
+    <div class="pill muted">Scanned 2:52 PM</div>
+  </div>
+</header>
+
+<div class="main">
+  <!-- LEFT: Manifest Card -->
+  <div class="left">
+    <div class="manifest-header">
+      <div class="load-id">TGT-04-001</div>
+      <h1 class="load-title">Home & Decor Mixed</h1>
+      <div class="load-meta">
+        <span class="load-source">East Coast DC</span>
+      </div>
+      <div class="grade-block buy">
+        <div class="grade-score" style="color:var(--buy)">82</div>
+        <div>
+          <div class="grade-label" style="color:var(--buy)">BUY</div>
+          <div class="grade-sub">Strong across all metrics</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="auction-bar">
+      <span class="auction-label">Auction Closes</span>
+      <span class="auction-time">22h 14m</span>
+    </div>
+
+    <!-- Categories -->
+    <div class="card">
+      <div class="label">Composition</div>
+      <div class="cat-list">
+        <div class="cat-row">
+          <span class="cat-name">Home Decor</span>
+          <div class="cat-bar-track"><div class="cat-bar-fill" style="width:100%;background:var(--cyan)"></div></div>
+          <span class="cat-pct">30%</span>
+        </div>
+        <div class="cat-row">
+          <span class="cat-name">Bedding</span>
+          <div class="cat-bar-track"><div class="cat-bar-fill" style="width:73%;background:var(--buy)"></div></div>
+          <span class="cat-pct">22%</span>
+        </div>
+        <div class="cat-row">
+          <span class="cat-name">Toys</span>
+          <div class="cat-bar-track"><div class="cat-bar-fill" style="width:53%;background:var(--consider)"></div></div>
+          <span class="cat-pct">16%</span>
+        </div>
+        <div class="cat-row">
+          <span class="cat-name">Lighting</span>
+          <div class="cat-bar-track"><div class="cat-bar-fill" style="width:40%;background:var(--orange)"></div></div>
+          <span class="cat-pct">12%</span>
+        </div>
+        <div class="cat-row">
+          <span class="cat-name">Kitchen</span>
+          <div class="cat-bar-track"><div class="cat-bar-fill" style="width:27%;background:var(--gold)"></div></div>
+          <span class="cat-pct">8%</span>
+        </div>
+        <div class="cat-row">
+          <span class="cat-name">Other</span>
+          <div class="cat-bar-track"><div class="cat-bar-fill" style="width:40%;background:var(--t3)"></div></div>
+          <span class="cat-pct">12%</span>
+        </div>
+      </div>
+    </div>
+
+    <button class="cta">View on B-Stock &#x2197;</button>
+  </div>
+
+  <!-- RIGHT: Data -->
+  <div class="right">
+    <!-- Metrics -->
+    <div class="metrics-row">
+      <div class="metric-card">
+        <div class="label">Total Retail</div>
+        <div class="hero-num" style="color:var(--t1)">$87,420</div>
+      </div>
+      <div class="metric-card">
+        <div class="label">Max Bid (20%)</div>
+        <div class="hero-num" style="color:var(--buy)">$17,484</div>
+        <div class="metric-sub">incl. $4,500 freight</div>
+      </div>
+      <div class="metric-card">
+        <div class="label">Items</div>
+        <div class="hero-num" style="color:var(--t1)">1,847</div>
+        <div class="metric-sub">1,623 SKUs</div>
+      </div>
+      <div class="metric-card">
+        <div class="label">Avg Value</div>
+        <div class="hero-num" style="color:var(--buy)">$47.33</div>
+        <div class="metric-sub">55% over $50</div>
+      </div>
+    </div>
+
+    <!-- Real load bar -->
+    <div class="card span-full">
+      <div class="label">Real Load Breakdown</div>
+      <div class="bar-track">
+        <div class="bar-seg" style="width:76%;background:var(--buy);color:rgba(0,0,0,0.5)">76%</div>
+        <div class="bar-seg" style="width:3%;background:var(--consider)"></div>
+        <div class="bar-seg" style="width:21%;background:var(--pass);color:rgba(0,0,0,0.4)">21%</div>
+      </div>
+      <div class="bar-legend">
+        <div class="bar-legend-left">
+          <div class="bar-legend-item"><div class="dot" style="background:var(--buy)"></div> Sellable</div>
+          <div class="bar-legend-item"><div class="dot" style="background:var(--consider)"></div> Seasonal</div>
+          <div class="bar-legend-item"><div class="dot" style="background:var(--pass)"></div> Waste</div>
+        </div>
+        <div class="bar-legend-right">
+          <span style="color:var(--buy)">Sellable $66,439</span>
+          <span style="color:var(--gold)">Revenue $33,219</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="bento">
+      <!-- Score -->
+      <div class="card">
+        <div class="label">Score Breakdown</div>
+        <div class="score-item pos"><span class="score-text">Strong retail: $87K</span></div>
+        <div class="score-item pos"><span class="score-text">Great value ratio (1,847 items)</span></div>
+        <div class="score-item pos"><span class="score-text">55% of items over $50</span></div>
+        <div class="score-item pos"><span class="score-text">75% preferred categories</span></div>
+        <div class="score-item pos"><span class="score-text">Great SKU variety</span></div>
+        <div class="score-item neu"><span class="score-text">Moderate waste projection</span></div>
+      </div>
+
+      <!-- Value dist: horizontal bars -->
+      <div class="card">
+        <div class="label">Value Distribution</div>
+        <div class="val-row">
+          <div class="val-label">&lt;$10</div>
+          <div class="val-track"><div class="val-fill" style="width:23%;background:var(--pass)"></div></div>
+          <div class="val-count">142</div>
+        </div>
+        <div class="val-row">
+          <div class="val-label">$10-25</div>
+          <div class="val-track"><div class="val-fill" style="width:50%;background:var(--orange)"></div></div>
+          <div class="val-count">310</div>
+        </div>
+        <div class="val-row">
+          <div class="val-label">$25-50</div>
+          <div class="val-track"><div class="val-fill" style="width:62%;background:var(--consider)"></div></div>
+          <div class="val-count">385</div>
+        </div>
+        <div class="val-row">
+          <div class="val-label">$50-100</div>
+          <div class="val-track"><div class="val-fill" style="width:100%;background:var(--buy)"></div></div>
+          <div class="val-count">620</div>
+        </div>
+        <div class="val-row">
+          <div class="val-label">$100+</div>
+          <div class="val-track"><div class="val-fill" style="width:63%;background:var(--cyan)"></div></div>
+          <div class="val-count">390</div>
+        </div>
+      </div>
+
+      <!-- Confidence -->
+      <div class="card">
+        <div class="label">Price Confidence</div>
+        <div class="conf-big">
+          <span class="conf-score" style="color:var(--buy)">91</span>
+          <span class="conf-unit">%</span>
+        </div>
+        <div style="font-size:12px;color:var(--t2);margin-bottom:2px">14 items flagged</div>
+        <div style="font-size:10px;color:var(--t3)">suspect retail pricing</div>
+        <button class="validate-btn">Validate Pricing</button>
+      </div>
+
+      <!-- SKU alert -->
+      <div class="sku-alert">
+        <span class="sku-label">Deep SKU Alert</span>
+        <span class="sku-tag">Opalhouse Throw Pillow <span class="count">x42</span></span>
+        <span class="sku-tag">Threshold Curtain Panel <span class="count">x28</span></span>
+      </div>
+    </div>
+
+    <!-- Top items strip -->
+    <div>
+      <div class="label" style="margin-bottom:8px">Top Items</div>
+      <div class="items-strip">
+        <div class="strip-item"><div class="strip-item-name">Casaluna Comforter Queen</div><div class="strip-item-cat">Bedding</div><div class="strip-item-price" style="color:var(--cyan)">$189.99</div></div>
+        <div class="strip-item"><div class="strip-item-name">Project 62 Bookshelf</div><div class="strip-item-cat">Furniture</div><div class="strip-item-price" style="color:var(--cyan)">$174.99</div></div>
+        <div class="strip-item"><div class="strip-item-name">KitchenAid Attachment</div><div class="strip-item-cat">Kitchen</div><div class="strip-item-price" style="color:var(--cyan)">$149.99</div></div>
+        <div class="strip-item"><div class="strip-item-name">Threshold Floor Lamp</div><div class="strip-item-cat">Lighting</div><div class="strip-item-price" style="color:var(--buy)">$129.99</div></div>
+        <div class="strip-item"><div class="strip-item-name">Casaluna Sheet Set King</div><div class="strip-item-cat">Bedding</div><div class="strip-item-price" style="color:var(--buy)">$119.99</div></div>
+        <div class="strip-item"><div class="strip-item-name">LEGO City Set</div><div class="strip-item-cat">Toys</div><div class="strip-item-price" style="color:var(--buy)">$99.99</div></div>
+        <div class="strip-item"><div class="strip-item-name">Threshold Wall Art</div><div class="strip-item-cat">Wall Art</div><div class="strip-item-price" style="color:var(--consider)">$89.99</div></div>
+        <div class="strip-item"><div class="strip-item-name">Threshold Rug 5x7</div><div class="strip-item-cat">Rugs</div><div class="strip-item-price" style="color:var(--consider)">$79.99</div></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="concept-label">Option B: Dealer's Table -- Warm editorial dark, serif headings, gold accents, ledger feel</div>
+</body>
+</html>

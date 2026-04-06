@@ -1,0 +1,850 @@
+<!DOCTYPE html>
+<html lang="en" style="color-scheme: dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Option A: Liquid Glass - Lucky Duck Dealz</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --cyan: #2bc5e6;
+    --cyan-soft: #63d4ef;
+    --cyan-dim: rgba(43,197,230,0.10);
+    --cyan-glow: rgba(43,197,230,0.18);
+    --cyan-bright: rgba(43,197,230,0.35);
+    --bg: #0b1018;
+    --surface: rgba(16,22,34,0.70);
+    --glass: rgba(18,26,40,0.55);
+    --glass-hover: rgba(18,26,40,0.72);
+    --border: rgba(255,255,255,0.06);
+    --border-light: rgba(255,255,255,0.10);
+    --green: #2dd4a8;
+    --green-dim: rgba(45,212,168,0.10);
+    --yellow: #f5bf3a;
+    --yellow-dim: rgba(245,191,58,0.10);
+    --red: #f06868;
+    --red-dim: rgba(240,104,104,0.10);
+    --orange: #e8933a;
+    --t1: #eaeff5;
+    --t2: #8796ab;
+    --t3: #4e5d72;
+  }
+
+  body {
+    font-family: 'Outfit', system-ui, sans-serif;
+    background: var(--bg);
+    color: var(--t1);
+    width: 100vw;
+    height: 100vh;
+    overflow: hidden;
+    position: relative;
+  }
+
+  /* Ambient orbs */
+  .ambient {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    overflow: hidden;
+    z-index: 0;
+  }
+  .ambient .orb1 {
+    position: absolute;
+    width: 60%;
+    height: 60%;
+    top: -15%;
+    left: -10%;
+    border-radius: 50%;
+    background: radial-gradient(circle, hsla(210,60%,25%,0.35) 0%, transparent 70%);
+    animation: drift1 20s ease-in-out infinite;
+  }
+  .ambient .orb2 {
+    position: absolute;
+    width: 40%;
+    height: 50%;
+    bottom: -10%;
+    right: -5%;
+    border-radius: 50%;
+    background: radial-gradient(circle, hsla(250,50%,20%,0.2) 0%, transparent 70%);
+    animation: drift2 25s ease-in-out infinite;
+  }
+  @keyframes drift1 {
+    0%, 100% { transform: translate(0,0) scale(1); }
+    50% { transform: translate(3%,2%) scale(1.05); }
+  }
+  @keyframes drift2 {
+    0%, 100% { transform: translate(0,0) scale(1); }
+    50% { transform: translate(-2%,-3%) scale(1.08); }
+  }
+
+  /* Grain overlay */
+  .grain {
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    z-index: 999;
+    opacity: 0.03;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+    background-repeat: repeat;
+    mix-blend-mode: overlay;
+  }
+
+  /* Glass card */
+  .glass {
+    background: var(--glass);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border-radius: 16px;
+    border: 1px solid var(--border);
+    padding: 16px 18px;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.2), inset 0 1px 0 rgba(255,255,255,0.04);
+    transition: border-color 0.3s ease, box-shadow 0.3s ease;
+  }
+  .glass:hover {
+    border-color: var(--border-light);
+  }
+  .glass.glow {
+    border-color: var(--cyan-glow);
+    box-shadow: 0 0 40px var(--cyan-dim), 0 2px 12px rgba(0,0,0,0.2);
+  }
+
+  .label {
+    font-size: 9px;
+    font-weight: 700;
+    color: var(--t3);
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    margin-bottom: 8px;
+  }
+  .hero-num {
+    font-size: 28px;
+    font-weight: 800;
+    letter-spacing: -0.03em;
+    line-height: 1;
+    font-variant-numeric: tabular-nums;
+  }
+
+  /* Header */
+  header {
+    position: relative;
+    z-index: 100;
+    height: 52px;
+    padding: 0 22px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    border-bottom: 1px solid var(--border);
+  }
+  .header-left {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+  }
+  .hamburger {
+    width: 36px;
+    height: 36px;
+    border-radius: 10px;
+    background: rgba(255,255,255,0.03);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: none;
+    cursor: pointer;
+  }
+  .brand {
+    font-size: 18px;
+    font-weight: 800;
+    color: var(--cyan);
+    letter-spacing: -0.02em;
+  }
+  .brand-sub {
+    font-size: 11px;
+    color: var(--t3);
+    font-weight: 500;
+    margin-left: 4px;
+  }
+  .status-pills {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .pill {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    padding: 5px 14px;
+    border-radius: 20px;
+    font-size: 11px;
+    font-weight: 700;
+  }
+  .pill.green { background: var(--green-dim); color: var(--green); }
+  .pill.muted { background: rgba(255,255,255,0.03); color: var(--t3); font-weight: 400; }
+  .pill .dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--green);
+    box-shadow: 0 0 8px var(--green);
+  }
+
+  /* Main layout */
+  .main {
+    position: relative;
+    z-index: 10;
+    height: calc(100vh - 52px);
+    display: grid;
+    grid-template-columns: 38% 62%;
+    overflow: hidden;
+  }
+
+  /* Left panel */
+  .left {
+    padding: 24px 22px;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+  }
+  .left::-webkit-scrollbar { width: 3px; }
+  .left::-webkit-scrollbar-track { background: transparent; }
+  .left::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.05); border-radius: 2px; }
+
+  .load-id {
+    font-size: 10px;
+    font-weight: 700;
+    color: var(--orange);
+    letter-spacing: 0.08em;
+    margin-bottom: 6px;
+  }
+  .load-title {
+    font-size: 30px;
+    font-weight: 900;
+    letter-spacing: -0.03em;
+    line-height: 1.1;
+    margin-bottom: 6px;
+    text-wrap: balance;
+  }
+  .load-meta {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  .load-source { font-size: 12px; color: var(--t2); }
+  .grade-badge {
+    padding: 3px 12px;
+    border-radius: 16px;
+    font-size: 11px;
+    font-weight: 700;
+  }
+  .grade-badge.green { background: var(--green-dim); color: var(--green); }
+  .auction-time {
+    margin-top: 8px;
+    font-size: 12px;
+    color: var(--orange);
+    font-weight: 600;
+  }
+
+  /* Comp ring */
+  .comp-ring-wrap {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+  }
+  .comp-legend {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+  }
+  .comp-legend-item {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    font-size: 11px;
+    color: var(--t2);
+  }
+  .comp-legend-item .swatch {
+    width: 8px;
+    height: 8px;
+    border-radius: 3px;
+    flex-shrink: 0;
+  }
+  .comp-legend-item .pct {
+    color: var(--t1);
+    font-weight: 700;
+  }
+
+  /* Item grid */
+  .item-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 8px;
+  }
+  .item-card {
+    background: var(--glass);
+    backdrop-filter: blur(16px);
+    border-radius: 14px;
+    padding: 12px 14px;
+    border: 1px solid var(--border);
+    transition: border-color 0.2s;
+  }
+  .item-card:hover {
+    border-color: var(--border-light);
+  }
+  .item-icon {
+    width: 36px;
+    height: 36px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--t2);
+    margin-bottom: 8px;
+  }
+  .item-name {
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--t1);
+    margin-bottom: 2px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .item-cat {
+    font-size: 10px;
+    color: var(--t3);
+    margin-bottom: 4px;
+  }
+  .item-price {
+    font-size: 15px;
+    font-weight: 800;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .cta {
+    width: 100%;
+    padding: 14px 0;
+    border-radius: 14px;
+    background: linear-gradient(135deg, var(--cyan), #1c99b8);
+    color: #fff;
+    font-family: inherit;
+    font-size: 14px;
+    font-weight: 700;
+    letter-spacing: -0.01em;
+    border: none;
+    cursor: pointer;
+    box-shadow: 0 6px 28px var(--cyan-glow);
+    transition: transform 0.15s ease, box-shadow 0.15s ease;
+  }
+  .cta:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 8px 36px var(--cyan-bright);
+  }
+  .cta:active {
+    transform: scale(0.97);
+  }
+
+  /* Right panel */
+  .right {
+    padding: 16px 22px 16px 10px;
+    overflow-y: auto;
+  }
+  .right::-webkit-scrollbar { width: 3px; }
+  .right::-webkit-scrollbar-track { background: transparent; }
+  .right::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.05); border-radius: 2px; }
+
+  .tabs {
+    display: flex;
+    gap: 3px;
+    margin-bottom: 14px;
+    background: rgba(255,255,255,0.025);
+    border-radius: 12px;
+    padding: 3px;
+    width: fit-content;
+  }
+  .tab {
+    padding: 8px 22px;
+    border-radius: 10px;
+    font-size: 12px;
+    font-weight: 600;
+    border: none;
+    cursor: pointer;
+    font-family: inherit;
+    transition: background 0.25s, color 0.25s, box-shadow 0.25s;
+    background: transparent;
+    color: var(--t3);
+  }
+  .tab.active {
+    background: var(--cyan-dim);
+    color: var(--cyan);
+    box-shadow: 0 0 10px var(--cyan-dim);
+  }
+
+  .bento {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+  }
+  .span-full { grid-column: 1 / -1; }
+
+  /* Metrics row */
+  .metrics-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 16px;
+  }
+  .metric-sub {
+    font-size: 10px;
+    color: var(--t3);
+    margin-top: 3px;
+  }
+
+  /* Real load bar */
+  .bar-track {
+    height: 24px;
+    border-radius: 12px;
+    overflow: hidden;
+    display: flex;
+    background: rgba(255,255,255,0.03);
+    margin-bottom: 8px;
+  }
+  .bar-seg {
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 10px;
+    font-weight: 800;
+    color: rgba(0,0,0,0.5);
+    transition: width 0.6s ease;
+  }
+  .bar-legend {
+    display: flex;
+    justify-content: space-between;
+  }
+  .bar-legend-left {
+    display: flex;
+    gap: 12px;
+  }
+  .bar-legend-item {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    font-size: 10px;
+    color: var(--t2);
+  }
+  .bar-legend-item .dot {
+    width: 7px;
+    height: 7px;
+    border-radius: 2px;
+  }
+  .bar-legend-right {
+    display: flex;
+    gap: 14px;
+    font-size: 12px;
+    font-weight: 700;
+  }
+
+  /* Score breakdown */
+  .score-item {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    padding: 5px 9px;
+    border-radius: 8px;
+    margin-bottom: 4px;
+  }
+  .score-icon {
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 9px;
+    font-weight: 900;
+    flex-shrink: 0;
+  }
+  .score-text {
+    font-size: 11px;
+    color: var(--t2);
+  }
+
+  /* Value bars */
+  .val-bars {
+    display: flex;
+    gap: 6px;
+    align-items: flex-end;
+    height: 80px;
+  }
+  .val-bar-col {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+  }
+  .val-bar-count {
+    font-size: 10px;
+    font-weight: 700;
+    color: var(--t2);
+    font-variant-numeric: tabular-nums;
+  }
+  .val-bar {
+    width: 100%;
+    border-radius: 5px;
+    min-height: 4px;
+    transition: height 0.6s cubic-bezier(0.34,1.56,0.64,1);
+  }
+  .val-bar-label {
+    font-size: 9px;
+    color: var(--t3);
+    font-weight: 600;
+  }
+
+  /* Confidence */
+  .conf-row {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+  }
+  .conf-score {
+    font-size: 32px;
+    font-weight: 800;
+    line-height: 1;
+    font-variant-numeric: tabular-nums;
+  }
+  .conf-score .unit { font-size: 14px; color: var(--t3); }
+  .validate-btn {
+    width: 100%;
+    margin-top: 12px;
+    padding: 8px;
+    border-radius: 10px;
+    border: 1px solid var(--border);
+    background: transparent;
+    color: var(--cyan);
+    font-family: inherit;
+    font-size: 11px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: background 0.2s;
+  }
+  .validate-btn:hover { background: var(--cyan-dim); }
+
+  /* Deep SKU alert */
+  .sku-alert {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+    background: var(--red-dim);
+    border-radius: 14px;
+    border: 1px solid rgba(240,104,104,0.12);
+    padding: 12px 18px;
+  }
+  .sku-label {
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--red);
+  }
+  .sku-tag {
+    font-size: 11px;
+    color: var(--t2);
+    background: rgba(0,0,0,0.2);
+    padding: 3px 10px;
+    border-radius: 8px;
+  }
+  .sku-tag .count { color: var(--red); font-weight: 700; }
+
+  /* Concept label */
+  .concept-label {
+    position: fixed;
+    bottom: 16px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 200;
+    background: rgba(43,197,230,0.12);
+    border: 1px solid rgba(43,197,230,0.25);
+    padding: 8px 24px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--cyan);
+    backdrop-filter: blur(12px);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+      animation-duration: 0.01ms !important;
+      transition-duration: 0.01ms !important;
+    }
+  }
+</style>
+</head>
+<body>
+<div class="ambient">
+  <div class="orb1"></div>
+  <div class="orb2"></div>
+</div>
+<div class="grain"></div>
+
+<header>
+  <div class="header-left">
+    <button class="hamburger" aria-label="Open load drawer">
+      <svg width="18" height="14" viewBox="0 0 18 14" fill="none"><rect y="0" width="18" height="2" rx="1" fill="#8796ab"/><rect y="6" width="18" height="2" rx="1" fill="#8796ab"/><rect y="12" width="18" height="2" rx="1" fill="#8796ab"/></svg>
+    </button>
+    <span class="brand">Lucky Duck</span>
+    <span class="brand-sub">Manifest Analyzer</span>
+  </div>
+  <div class="status-pills">
+    <div class="pill green"><div class="dot"></div> 2 Strong</div>
+    <div class="pill muted">Today 2:52 PM</div>
+  </div>
+</header>
+
+<div class="main">
+  <!-- LEFT PANEL -->
+  <div class="left">
+    <div>
+      <div class="load-id">TGT-04-001</div>
+      <h1 class="load-title">Home & Decor Mixed</h1>
+      <div class="load-meta">
+        <span class="load-source">East Coast</span>
+        <span class="grade-badge green">BUY &middot; 82</span>
+      </div>
+      <div class="auction-time">Auction closes in 22h 14m</div>
+    </div>
+
+    <!-- Composition ring -->
+    <div class="glass">
+      <div class="label">Load Composition</div>
+      <div class="comp-ring-wrap">
+        <svg width="140" height="140" viewBox="0 0 140 140">
+          <circle cx="70" cy="70" r="56" fill="none" stroke="#2bc5e6" stroke-width="14" stroke-dasharray="105.6 245.9" stroke-dashoffset="0" transform="rotate(-90 70 70)" opacity="0.85"/>
+          <circle cx="70" cy="70" r="56" fill="none" stroke="#2dd4a8" stroke-width="14" stroke-dasharray="77.3 274.2" stroke-dashoffset="-105.6" transform="rotate(-90 70 70)" opacity="0.85"/>
+          <circle cx="70" cy="70" r="56" fill="none" stroke="#f5bf3a" stroke-width="14" stroke-dasharray="56.3 295.2" stroke-dashoffset="-182.9" transform="rotate(-90 70 70)" opacity="0.85"/>
+          <circle cx="70" cy="70" r="56" fill="none" stroke="#e8933a" stroke-width="14" stroke-dasharray="42.2 309.3" stroke-dashoffset="-239.2" transform="rotate(-90 70 70)" opacity="0.85"/>
+          <circle cx="70" cy="70" r="56" fill="none" stroke="#f06868" stroke-width="14" stroke-dasharray="28.1 323.4" stroke-dashoffset="-281.4" transform="rotate(-90 70 70)" opacity="0.85"/>
+          <circle cx="70" cy="70" r="56" fill="none" stroke="#64748b" stroke-width="14" stroke-dasharray="14.1 337.4" stroke-dashoffset="-309.5" transform="rotate(-90 70 70)" opacity="0.85"/>
+        </svg>
+        <div class="comp-legend">
+          <div class="comp-legend-item"><div class="swatch" style="background:#2bc5e6"></div> Home Decor <span class="pct">30%</span></div>
+          <div class="comp-legend-item"><div class="swatch" style="background:#2dd4a8"></div> Bedding <span class="pct">22%</span></div>
+          <div class="comp-legend-item"><div class="swatch" style="background:#f5bf3a"></div> Toys <span class="pct">16%</span></div>
+          <div class="comp-legend-item"><div class="swatch" style="background:#e8933a"></div> Lighting <span class="pct">12%</span></div>
+          <div class="comp-legend-item"><div class="swatch" style="background:#f06868"></div> Kitchen <span class="pct">8%</span></div>
+          <div class="comp-legend-item"><div class="swatch" style="background:#64748b"></div> Other <span class="pct">12%</span></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Top items -->
+    <div>
+      <div class="label">Top Items in This Load</div>
+      <div class="item-grid">
+        <div class="item-card">
+          <div class="item-icon" style="background:hsla(210,40%,25%,0.5)">HD</div>
+          <div class="item-name">Casaluna Comforter Queen</div>
+          <div class="item-cat">Bedding</div>
+          <div class="item-price" style="color:var(--cyan)">$189.99</div>
+        </div>
+        <div class="item-card">
+          <div class="item-icon" style="background:hsla(250,40%,25%,0.5)">FU</div>
+          <div class="item-name">Project 62 Bookshelf</div>
+          <div class="item-cat">Furniture</div>
+          <div class="item-price" style="color:var(--cyan)">$174.99</div>
+        </div>
+        <div class="item-card">
+          <div class="item-icon" style="background:hsla(290,40%,25%,0.5)">KI</div>
+          <div class="item-name">KitchenAid Attachment</div>
+          <div class="item-cat">Kitchen</div>
+          <div class="item-price" style="color:var(--cyan)">$149.99</div>
+        </div>
+        <div class="item-card">
+          <div class="item-icon" style="background:hsla(330,40%,25%,0.5)">LI</div>
+          <div class="item-name">Threshold Floor Lamp</div>
+          <div class="item-cat">Lighting</div>
+          <div class="item-price" style="color:var(--green)">$129.99</div>
+        </div>
+        <div class="item-card">
+          <div class="item-icon" style="background:hsla(10,40%,25%,0.5)">BD</div>
+          <div class="item-name">Casaluna Sheet Set King</div>
+          <div class="item-cat">Bedding</div>
+          <div class="item-price" style="color:var(--green)">$119.99</div>
+        </div>
+        <div class="item-card">
+          <div class="item-icon" style="background:hsla(50,40%,25%,0.5)">TO</div>
+          <div class="item-name">LEGO City Set</div>
+          <div class="item-cat">Toys</div>
+          <div class="item-price" style="color:var(--green)">$99.99</div>
+        </div>
+        <div class="item-card">
+          <div class="item-icon" style="background:hsla(90,40%,25%,0.5)">WA</div>
+          <div class="item-name">Threshold Wall Art</div>
+          <div class="item-cat">Wall Art</div>
+          <div class="item-price" style="color:var(--yellow)">$89.99</div>
+        </div>
+        <div class="item-card">
+          <div class="item-icon" style="background:hsla(130,40%,25%,0.5)">RU</div>
+          <div class="item-name">Threshold Rug 5x7</div>
+          <div class="item-cat">Rugs</div>
+          <div class="item-price" style="color:var(--yellow)">$79.99</div>
+        </div>
+        <div class="item-card">
+          <div class="item-icon" style="background:hsla(170,40%,25%,0.5)">HD</div>
+          <div class="item-name">Hearth & Hand Vase</div>
+          <div class="item-cat">Home Decor</div>
+          <div class="item-price" style="color:var(--yellow)">$64.99</div>
+        </div>
+      </div>
+    </div>
+
+    <button class="cta">View on B-Stock &#x2197;</button>
+  </div>
+
+  <!-- RIGHT PANEL -->
+  <div class="right">
+    <div class="tabs" role="tablist">
+      <button class="tab active" role="tab" aria-selected="true">Overview</button>
+      <button class="tab" role="tab" aria-selected="false">Detail</button>
+      <button class="tab" role="tab" aria-selected="false">Bid Modeler</button>
+    </div>
+
+    <div class="bento">
+      <!-- Hero metrics -->
+      <div class="glass span-full">
+        <div class="metrics-grid">
+          <div>
+            <div class="label">Total Retail</div>
+            <div class="hero-num" style="color:var(--t1)">$87,420</div>
+          </div>
+          <div>
+            <div class="label">Max Bid (20%)</div>
+            <div class="hero-num" style="color:var(--green)">$17,484</div>
+            <div class="metric-sub">incl. $4,500 freight</div>
+          </div>
+          <div>
+            <div class="label">Items</div>
+            <div class="hero-num" style="color:var(--t1)">1,847</div>
+            <div class="metric-sub">1,623 SKUs</div>
+          </div>
+          <div>
+            <div class="label">Avg Value</div>
+            <div class="hero-num" style="color:var(--green)">$47.33</div>
+            <div class="metric-sub">55% over $50</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Real load bar -->
+      <div class="glass span-full">
+        <div class="label">Real Load Breakdown</div>
+        <div class="bar-track">
+          <div class="bar-seg" style="width:76%;background:linear-gradient(90deg,#2dd4a8bb,#2dd4a8)">76%</div>
+          <div class="bar-seg" style="width:3%;background:linear-gradient(90deg,#f5bf3abb,#f5bf3a)"></div>
+          <div class="bar-seg" style="width:21%;background:linear-gradient(90deg,#f06868bb,#f06868)">21%</div>
+        </div>
+        <div class="bar-legend">
+          <div class="bar-legend-left">
+            <div class="bar-legend-item"><div class="dot" style="background:var(--green)"></div> Sellable</div>
+            <div class="bar-legend-item"><div class="dot" style="background:var(--yellow)"></div> Seasonal</div>
+            <div class="bar-legend-item"><div class="dot" style="background:var(--red)"></div> Waste</div>
+          </div>
+          <div class="bar-legend-right">
+            <span style="color:var(--green)">Sellable $66,439</span>
+            <span style="color:var(--cyan)">Revenue $33,219</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Score breakdown -->
+      <div class="glass">
+        <div class="label">Score Breakdown</div>
+        <div class="score-item" style="background:var(--green-dim)">
+          <div class="score-icon" style="color:var(--green);background:rgba(45,212,168,0.15)">+</div>
+          <span class="score-text">Strong retail: $87K</span>
+        </div>
+        <div class="score-item" style="background:var(--green-dim)">
+          <div class="score-icon" style="color:var(--green);background:rgba(45,212,168,0.15)">+</div>
+          <span class="score-text">Great value ratio</span>
+        </div>
+        <div class="score-item" style="background:var(--green-dim)">
+          <div class="score-icon" style="color:var(--green);background:rgba(45,212,168,0.15)">+</div>
+          <span class="score-text">55% over $50</span>
+        </div>
+        <div class="score-item" style="background:var(--green-dim)">
+          <div class="score-icon" style="color:var(--green);background:rgba(45,212,168,0.15)">+</div>
+          <span class="score-text">75% preferred</span>
+        </div>
+        <div class="score-item" style="background:var(--green-dim)">
+          <div class="score-icon" style="color:var(--green);background:rgba(45,212,168,0.15)">+</div>
+          <span class="score-text">Great variety</span>
+        </div>
+        <div class="score-item" style="background:var(--yellow-dim)">
+          <div class="score-icon" style="color:var(--yellow);background:rgba(245,191,58,0.15)">~</div>
+          <span class="score-text">Moderate waste</span>
+        </div>
+      </div>
+
+      <!-- Value distribution -->
+      <div class="glass">
+        <div class="label">Value Distribution</div>
+        <div class="val-bars">
+          <div class="val-bar-col">
+            <div class="val-bar-count">142</div>
+            <div class="val-bar" style="height:18px;background:linear-gradient(to top,#f06868bb,#f06868);box-shadow:0 0 10px rgba(240,104,104,0.1)"></div>
+            <div class="val-bar-label">&lt;$10</div>
+          </div>
+          <div class="val-bar-col">
+            <div class="val-bar-count">310</div>
+            <div class="val-bar" style="height:32px;background:linear-gradient(to top,#e8933abb,#e8933a);box-shadow:0 0 10px rgba(232,147,58,0.1)"></div>
+            <div class="val-bar-label">$10-25</div>
+          </div>
+          <div class="val-bar-col">
+            <div class="val-bar-count">385</div>
+            <div class="val-bar" style="height:40px;background:linear-gradient(to top,#f5bf3abb,#f5bf3a);box-shadow:0 0 10px rgba(245,191,58,0.1)"></div>
+            <div class="val-bar-label">$25-50</div>
+          </div>
+          <div class="val-bar-col">
+            <div class="val-bar-count">620</div>
+            <div class="val-bar" style="height:55px;background:linear-gradient(to top,#2dd4a8bb,#2dd4a8);box-shadow:0 0 10px rgba(45,212,168,0.1)"></div>
+            <div class="val-bar-label">$50-100</div>
+          </div>
+          <div class="val-bar-col">
+            <div class="val-bar-count">390</div>
+            <div class="val-bar" style="height:42px;background:linear-gradient(to top,#2bc5e6bb,#2bc5e6);box-shadow:0 0 10px rgba(43,197,230,0.1)"></div>
+            <div class="val-bar-label">$100+</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Confidence -->
+      <div class="glass">
+        <div class="label">Price Confidence</div>
+        <div class="conf-row">
+          <div class="conf-score" style="color:var(--green)">91<span class="unit">%</span></div>
+          <div>
+            <div style="font-size:12px;color:var(--t2)">14 items flagged</div>
+            <div style="font-size:10px;color:var(--t3)">suspect retail pricing</div>
+          </div>
+        </div>
+        <button class="validate-btn">Validate Pricing</button>
+      </div>
+
+      <!-- SKU alert -->
+      <div class="sku-alert span-full">
+        <span class="sku-label">Deep SKU</span>
+        <span class="sku-tag">Opalhouse Throw Pillow <span class="count">x42</span></span>
+        <span class="sku-tag">Threshold Curtain Panel <span class="count">x28</span></span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="concept-label">Option A: Liquid Glass -- Dark immersive, frosted cards, ambient orbs</div>
+</body>
+</html>

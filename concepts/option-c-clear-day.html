@@ -1,0 +1,874 @@
+<!DOCTYPE html>
+<html lang="en" style="color-scheme: light">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Option C: Clear Day - Lucky Duck Dealz</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    /* Light, airy, professional */
+    --bg: #f4f2ee;
+    --surface: #ffffff;
+    --surface-hover: #fafaf8;
+    --card-shadow: 0 1px 3px rgba(0,0,0,0.04), 0 4px 12px rgba(0,0,0,0.03);
+    --card-shadow-hover: 0 2px 6px rgba(0,0,0,0.06), 0 8px 24px rgba(0,0,0,0.04);
+
+    /* From the duck */
+    --navy: #1a2744;
+    --navy-light: #2a3a5c;
+    --cyan: #1aadcc;
+    --cyan-light: #e6f7fb;
+    --cyan-vivid: #0ec4e6;
+    --orange: #e08a28;
+    --orange-light: #fef3e2;
+    --orange-dim: rgba(224,138,40,0.08);
+
+    /* Semantic */
+    --buy: #16a76e;
+    --buy-bg: #edf8f3;
+    --buy-border: #c6ecd8;
+    --consider: #c49215;
+    --consider-bg: #fdf6e6;
+    --consider-border: #f0dfa0;
+    --pass: #d14343;
+    --pass-bg: #fdeaea;
+    --pass-border: #f5c0c0;
+
+    /* Text */
+    --t1: #1a2744;
+    --t2: #5a6478;
+    --t3: #9099a8;
+    --border: #e8e6e0;
+    --border-focus: #1aadcc;
+  }
+
+  body {
+    font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
+    background: var(--bg);
+    color: var(--t1);
+    width: 100vw;
+    height: 100vh;
+    overflow: hidden;
+  }
+
+  .card {
+    background: var(--surface);
+    border-radius: 14px;
+    border: 1px solid var(--border);
+    padding: 18px 20px;
+    box-shadow: var(--card-shadow);
+    transition: box-shadow 0.3s ease, border-color 0.3s ease;
+  }
+  .card:hover {
+    box-shadow: var(--card-shadow-hover);
+  }
+
+  .label {
+    font-size: 10px;
+    font-weight: 700;
+    color: var(--t3);
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    margin-bottom: 10px;
+  }
+  .hero-num {
+    font-size: 30px;
+    font-weight: 800;
+    letter-spacing: -0.03em;
+    line-height: 1;
+    font-variant-numeric: tabular-nums;
+  }
+
+  /* Header */
+  header {
+    height: 56px;
+    padding: 0 24px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    box-shadow: 0 1px 2px rgba(0,0,0,0.03);
+  }
+  .header-left {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+  }
+  .hamburger {
+    width: 36px;
+    height: 36px;
+    border-radius: 10px;
+    background: transparent;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid var(--border);
+    cursor: pointer;
+    transition: background 0.2s, border-color 0.2s;
+  }
+  .hamburger:hover {
+    background: var(--cyan-light);
+    border-color: var(--cyan);
+  }
+  .brand-group {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .duck-icon {
+    width: 32px;
+    height: 32px;
+    background: linear-gradient(135deg, var(--cyan-vivid), var(--cyan));
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-weight: 800;
+    font-size: 14px;
+  }
+  .brand {
+    font-size: 18px;
+    font-weight: 800;
+    color: var(--navy);
+    letter-spacing: -0.02em;
+  }
+  .brand-sub {
+    font-size: 11px;
+    color: var(--t3);
+    font-weight: 500;
+    margin-left: 2px;
+  }
+  .status-pills {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .pill {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    padding: 6px 14px;
+    border-radius: 20px;
+    font-size: 11px;
+    font-weight: 700;
+  }
+  .pill.buy-pill { background: var(--buy-bg); color: var(--buy); border: 1px solid var(--buy-border); }
+  .pill.muted { background: var(--surface); color: var(--t3); font-weight: 400; border: 1px solid var(--border); }
+  .pill .dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--buy);
+  }
+
+  /* Main layout */
+  .main {
+    height: calc(100vh - 56px);
+    display: grid;
+    grid-template-columns: 350px 1fr;
+    overflow: hidden;
+  }
+
+  /* Left: Clean summary column */
+  .left {
+    padding: 20px;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    border-right: 1px solid var(--border);
+    background: var(--surface);
+  }
+  .left::-webkit-scrollbar { width: 3px; }
+  .left::-webkit-scrollbar-track { background: transparent; }
+  .left::-webkit-scrollbar-thumb { background: #d0cec8; border-radius: 2px; }
+
+  .load-header-card {
+    background: var(--navy);
+    border-radius: 14px;
+    padding: 22px;
+    color: white;
+    position: relative;
+    overflow: hidden;
+  }
+  .load-header-card::after {
+    content: '';
+    position: absolute;
+    top: -30%;
+    right: -20%;
+    width: 60%;
+    height: 100%;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(26,173,204,0.15) 0%, transparent 70%);
+  }
+  .load-id {
+    font-size: 10px;
+    font-weight: 700;
+    color: var(--cyan-vivid);
+    letter-spacing: 0.08em;
+    margin-bottom: 6px;
+  }
+  .load-title {
+    font-size: 24px;
+    font-weight: 800;
+    letter-spacing: -0.02em;
+    line-height: 1.15;
+    margin-bottom: 10px;
+    text-wrap: balance;
+  }
+  .load-source {
+    font-size: 12px;
+    color: rgba(255,255,255,0.6);
+  }
+
+  /* Grade: prominent badge */
+  .grade-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  .grade-circle {
+    width: 64px;
+    height: 64px;
+    border-radius: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 26px;
+    font-weight: 800;
+    flex-shrink: 0;
+    font-variant-numeric: tabular-nums;
+  }
+  .grade-circle.buy { background: var(--buy-bg); color: var(--buy); border: 2px solid var(--buy-border); }
+  .grade-info .grade-label {
+    font-size: 14px;
+    font-weight: 800;
+  }
+  .grade-info .grade-sub {
+    font-size: 12px;
+    color: var(--t2);
+    margin-top: 2px;
+  }
+
+  .auction-bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 12px 16px;
+    border-radius: 10px;
+    background: var(--orange-light);
+    border: 1px solid rgba(224,138,40,0.15);
+  }
+  .auction-label {
+    font-size: 11px;
+    color: var(--t3);
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+  }
+  .auction-time {
+    font-size: 18px;
+    font-weight: 800;
+    color: var(--orange);
+    font-variant-numeric: tabular-nums;
+  }
+
+  /* Donut + legend */
+  .comp-ring-wrap {
+    display: flex;
+    align-items: center;
+    gap: 18px;
+  }
+  .comp-legend {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+  }
+  .comp-legend-item {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    font-size: 11px;
+    color: var(--t2);
+  }
+  .comp-legend-item .swatch {
+    width: 8px;
+    height: 8px;
+    border-radius: 3px;
+    flex-shrink: 0;
+  }
+  .comp-legend-item .pct {
+    color: var(--t1);
+    font-weight: 700;
+  }
+
+  .cta {
+    width: 100%;
+    padding: 14px 0;
+    border-radius: 12px;
+    background: var(--cyan);
+    color: white;
+    font-family: inherit;
+    font-size: 13px;
+    font-weight: 700;
+    border: none;
+    cursor: pointer;
+    transition: transform 0.15s ease, box-shadow 0.15s ease, background 0.15s ease;
+  }
+  .cta:hover {
+    background: var(--cyan-vivid);
+    transform: translateY(-1px);
+    box-shadow: 0 6px 20px rgba(26,173,204,0.25);
+  }
+  .cta:active { transform: scale(0.97); }
+
+  /* Right panel */
+  .right {
+    padding: 20px 24px;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+  }
+  .right::-webkit-scrollbar { width: 3px; }
+  .right::-webkit-scrollbar-track { background: transparent; }
+  .right::-webkit-scrollbar-thumb { background: #d0cec8; border-radius: 2px; }
+
+  /* Tabs */
+  .tabs {
+    display: flex;
+    gap: 2px;
+    background: var(--surface);
+    border-radius: 12px;
+    padding: 3px;
+    width: fit-content;
+    border: 1px solid var(--border);
+  }
+  .tab {
+    padding: 8px 22px;
+    border-radius: 10px;
+    font-size: 12px;
+    font-weight: 600;
+    border: none;
+    cursor: pointer;
+    font-family: inherit;
+    transition: background 0.25s, color 0.25s;
+    background: transparent;
+    color: var(--t3);
+  }
+  .tab.active {
+    background: var(--navy);
+    color: white;
+  }
+
+  /* Metrics */
+  .metrics-row {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 12px;
+  }
+  .metric-sub {
+    font-size: 10px;
+    color: var(--t3);
+    margin-top: 4px;
+  }
+
+  /* Bento */
+  .bento {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+  }
+  .span-full { grid-column: 1 / -1; }
+
+  /* Real load bar */
+  .bar-track {
+    height: 28px;
+    border-radius: 8px;
+    overflow: hidden;
+    display: flex;
+    background: #f0eee8;
+    margin-bottom: 10px;
+  }
+  .bar-seg {
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 11px;
+    font-weight: 700;
+    color: white;
+    transition: width 0.6s ease;
+  }
+  .bar-legend {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  .bar-legend-left {
+    display: flex;
+    gap: 16px;
+  }
+  .bar-legend-item {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 11px;
+    color: var(--t2);
+  }
+  .bar-legend-item .dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 3px;
+  }
+  .bar-legend-right {
+    display: flex;
+    gap: 18px;
+    font-size: 13px;
+    font-weight: 700;
+  }
+
+  /* Score breakdown */
+  .score-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 8px 12px;
+    border-radius: 8px;
+    margin-bottom: 4px;
+  }
+  .score-icon {
+    width: 20px;
+    height: 20px;
+    border-radius: 6px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 11px;
+    font-weight: 900;
+    flex-shrink: 0;
+  }
+  .score-text {
+    font-size: 12px;
+    color: var(--t2);
+  }
+
+  /* Value dist: pill bars */
+  .val-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 8px;
+  }
+  .val-label {
+    font-size: 11px;
+    color: var(--t3);
+    font-weight: 600;
+    width: 50px;
+    text-align: right;
+    font-variant-numeric: tabular-nums;
+  }
+  .val-track {
+    flex: 1;
+    height: 12px;
+    border-radius: 6px;
+    background: #f0eee8;
+    overflow: hidden;
+  }
+  .val-fill {
+    height: 100%;
+    border-radius: 6px;
+    transition: width 0.5s ease;
+  }
+  .val-count {
+    font-size: 11px;
+    color: var(--t2);
+    font-weight: 600;
+    width: 40px;
+    font-variant-numeric: tabular-nums;
+  }
+
+  /* Confidence */
+  .conf-row {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+  }
+  .conf-score {
+    font-size: 36px;
+    font-weight: 800;
+    line-height: 1;
+    font-variant-numeric: tabular-nums;
+  }
+  .conf-unit { font-size: 16px; color: var(--t3); }
+  .validate-btn {
+    width: 100%;
+    margin-top: 12px;
+    padding: 10px;
+    border-radius: 10px;
+    border: 1px solid var(--border);
+    background: var(--surface);
+    color: var(--cyan);
+    font-family: inherit;
+    font-size: 12px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: background 0.2s, border-color 0.2s;
+  }
+  .validate-btn:hover {
+    background: var(--cyan-light);
+    border-color: var(--cyan);
+  }
+
+  /* Top items: grid */
+  .item-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 8px;
+  }
+  .item-card {
+    background: var(--surface);
+    border-radius: 10px;
+    border: 1px solid var(--border);
+    padding: 12px;
+    transition: box-shadow 0.2s, border-color 0.2s;
+  }
+  .item-card:hover {
+    box-shadow: var(--card-shadow-hover);
+    border-color: rgba(26,173,204,0.2);
+  }
+  .item-cat-tag {
+    display: inline-block;
+    font-size: 9px;
+    font-weight: 700;
+    padding: 2px 8px;
+    border-radius: 4px;
+    margin-bottom: 6px;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+  }
+  .item-name {
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--t1);
+    margin-bottom: 4px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .item-price {
+    font-size: 16px;
+    font-weight: 800;
+    font-variant-numeric: tabular-nums;
+  }
+
+  /* SKU alert */
+  .sku-alert {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+    padding: 12px 16px;
+    border-radius: 10px;
+    background: var(--pass-bg);
+    border: 1px solid var(--pass-border);
+  }
+  .sku-label {
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--pass);
+  }
+  .sku-tag {
+    font-size: 11px;
+    color: var(--t2);
+    background: white;
+    padding: 4px 10px;
+    border-radius: 6px;
+    border: 1px solid var(--border);
+  }
+  .sku-tag .count { color: var(--pass); font-weight: 700; }
+
+  /* Concept label */
+  .concept-label {
+    position: fixed;
+    bottom: 16px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 200;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    padding: 8px 24px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--navy);
+    box-shadow: var(--card-shadow);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+      animation-duration: 0.01ms !important;
+      transition-duration: 0.01ms !important;
+    }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="header-left">
+    <button class="hamburger" aria-label="Open load drawer">
+      <svg width="18" height="14" viewBox="0 0 18 14" fill="none"><rect y="0" width="18" height="2" rx="1" fill="#9099a8"/><rect y="6" width="18" height="2" rx="1" fill="#9099a8"/><rect y="12" width="18" height="2" rx="1" fill="#9099a8"/></svg>
+    </button>
+    <div class="brand-group">
+      <div class="duck-icon">LD</div>
+      <div>
+        <span class="brand">Lucky Duck Dealz</span>
+      </div>
+    </div>
+  </div>
+  <div class="status-pills">
+    <div class="pill buy-pill"><div class="dot"></div> 2 Strong Loads</div>
+    <div class="pill muted">Last scan: 2:52 PM</div>
+  </div>
+</header>
+
+<div class="main">
+  <!-- LEFT -->
+  <div class="left">
+    <div class="load-header-card">
+      <div class="load-id">TGT-04-001</div>
+      <h1 class="load-title">Home & Decor Mixed</h1>
+      <div class="load-source">East Coast Distribution Center</div>
+    </div>
+
+    <div style="display:flex;gap:12px;align-items:center;">
+      <div class="grade-circle buy">82</div>
+      <div class="grade-info">
+        <div class="grade-label" style="color:var(--buy)">BUY</div>
+        <div class="grade-sub">Strong across all metrics</div>
+      </div>
+    </div>
+
+    <div class="auction-bar">
+      <span class="auction-label">Auction Closes</span>
+      <span class="auction-time">22h 14m</span>
+    </div>
+
+    <!-- Composition -->
+    <div class="card">
+      <div class="label">Composition</div>
+      <div class="comp-ring-wrap">
+        <svg width="120" height="120" viewBox="0 0 140 140">
+          <circle cx="70" cy="70" r="56" fill="none" stroke="#1aadcc" stroke-width="16" stroke-dasharray="105.6 245.9" stroke-dashoffset="0" transform="rotate(-90 70 70)" opacity="0.9"/>
+          <circle cx="70" cy="70" r="56" fill="none" stroke="#16a76e" stroke-width="16" stroke-dasharray="77.3 274.2" stroke-dashoffset="-105.6" transform="rotate(-90 70 70)" opacity="0.9"/>
+          <circle cx="70" cy="70" r="56" fill="none" stroke="#c49215" stroke-width="16" stroke-dasharray="56.3 295.2" stroke-dashoffset="-182.9" transform="rotate(-90 70 70)" opacity="0.9"/>
+          <circle cx="70" cy="70" r="56" fill="none" stroke="#e08a28" stroke-width="16" stroke-dasharray="42.2 309.3" stroke-dashoffset="-239.2" transform="rotate(-90 70 70)" opacity="0.9"/>
+          <circle cx="70" cy="70" r="56" fill="none" stroke="#d14343" stroke-width="16" stroke-dasharray="28.1 323.4" stroke-dashoffset="-281.4" transform="rotate(-90 70 70)" opacity="0.9"/>
+          <circle cx="70" cy="70" r="56" fill="none" stroke="#9099a8" stroke-width="16" stroke-dasharray="14.1 337.4" stroke-dashoffset="-309.5" transform="rotate(-90 70 70)" opacity="0.7"/>
+        </svg>
+        <div class="comp-legend">
+          <div class="comp-legend-item"><div class="swatch" style="background:#1aadcc"></div> Home Decor <span class="pct">30%</span></div>
+          <div class="comp-legend-item"><div class="swatch" style="background:#16a76e"></div> Bedding <span class="pct">22%</span></div>
+          <div class="comp-legend-item"><div class="swatch" style="background:#c49215"></div> Toys <span class="pct">16%</span></div>
+          <div class="comp-legend-item"><div class="swatch" style="background:#e08a28"></div> Lighting <span class="pct">12%</span></div>
+          <div class="comp-legend-item"><div class="swatch" style="background:#d14343"></div> Kitchen <span class="pct">8%</span></div>
+          <div class="comp-legend-item"><div class="swatch" style="background:#9099a8"></div> Other <span class="pct">12%</span></div>
+        </div>
+      </div>
+    </div>
+
+    <button class="cta">View on B-Stock &#x2197;</button>
+  </div>
+
+  <!-- RIGHT -->
+  <div class="right">
+    <div class="tabs" role="tablist">
+      <button class="tab active" role="tab" aria-selected="true">Overview</button>
+      <button class="tab" role="tab" aria-selected="false">Detail</button>
+      <button class="tab" role="tab" aria-selected="false">Bid Modeler</button>
+    </div>
+
+    <!-- Metrics -->
+    <div class="metrics-row">
+      <div class="card">
+        <div class="label">Total Retail</div>
+        <div class="hero-num" style="color:var(--t1)">$87,420</div>
+      </div>
+      <div class="card">
+        <div class="label">Max Bid (20%)</div>
+        <div class="hero-num" style="color:var(--buy)">$17,484</div>
+        <div class="metric-sub">incl. $4,500 freight</div>
+      </div>
+      <div class="card">
+        <div class="label">Items</div>
+        <div class="hero-num" style="color:var(--t1)">1,847</div>
+        <div class="metric-sub">1,623 SKUs</div>
+      </div>
+      <div class="card">
+        <div class="label">Avg Value</div>
+        <div class="hero-num" style="color:var(--buy)">$47.33</div>
+        <div class="metric-sub">55% over $50</div>
+      </div>
+    </div>
+
+    <!-- Real load bar -->
+    <div class="card span-full">
+      <div class="label">Real Load Breakdown</div>
+      <div class="bar-track">
+        <div class="bar-seg" style="width:76%;background:var(--buy);border-radius:8px 0 0 8px">76%</div>
+        <div class="bar-seg" style="width:3%;background:var(--consider)"></div>
+        <div class="bar-seg" style="width:21%;background:var(--pass);border-radius:0 8px 8px 0">21%</div>
+      </div>
+      <div class="bar-legend">
+        <div class="bar-legend-left">
+          <div class="bar-legend-item"><div class="dot" style="background:var(--buy)"></div> Sellable</div>
+          <div class="bar-legend-item"><div class="dot" style="background:var(--consider)"></div> Seasonal</div>
+          <div class="bar-legend-item"><div class="dot" style="background:var(--pass)"></div> Waste</div>
+        </div>
+        <div class="bar-legend-right">
+          <span style="color:var(--buy)">Sellable $66,439</span>
+          <span style="color:var(--cyan)">Revenue $33,219</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="bento">
+      <!-- Score -->
+      <div class="card">
+        <div class="label">Score Breakdown</div>
+        <div class="score-item" style="background:var(--buy-bg)">
+          <div class="score-icon" style="background:var(--buy-border);color:var(--buy)">+</div>
+          <span class="score-text">Strong retail: $87K</span>
+        </div>
+        <div class="score-item" style="background:var(--buy-bg)">
+          <div class="score-icon" style="background:var(--buy-border);color:var(--buy)">+</div>
+          <span class="score-text">Great value ratio</span>
+        </div>
+        <div class="score-item" style="background:var(--buy-bg)">
+          <div class="score-icon" style="background:var(--buy-border);color:var(--buy)">+</div>
+          <span class="score-text">55% over $50</span>
+        </div>
+        <div class="score-item" style="background:var(--buy-bg)">
+          <div class="score-icon" style="background:var(--buy-border);color:var(--buy)">+</div>
+          <span class="score-text">75% preferred</span>
+        </div>
+        <div class="score-item" style="background:var(--buy-bg)">
+          <div class="score-icon" style="background:var(--buy-border);color:var(--buy)">+</div>
+          <span class="score-text">Great variety</span>
+        </div>
+        <div class="score-item" style="background:var(--consider-bg)">
+          <div class="score-icon" style="background:var(--consider-border);color:var(--consider)">~</div>
+          <span class="score-text">Moderate waste</span>
+        </div>
+      </div>
+
+      <!-- Value dist -->
+      <div class="card">
+        <div class="label">Value Distribution</div>
+        <div class="val-row">
+          <div class="val-label">&lt;$10</div>
+          <div class="val-track"><div class="val-fill" style="width:23%;background:var(--pass)"></div></div>
+          <div class="val-count">142</div>
+        </div>
+        <div class="val-row">
+          <div class="val-label">$10-25</div>
+          <div class="val-track"><div class="val-fill" style="width:50%;background:var(--orange)"></div></div>
+          <div class="val-count">310</div>
+        </div>
+        <div class="val-row">
+          <div class="val-label">$25-50</div>
+          <div class="val-track"><div class="val-fill" style="width:62%;background:var(--consider)"></div></div>
+          <div class="val-count">385</div>
+        </div>
+        <div class="val-row">
+          <div class="val-label">$50-100</div>
+          <div class="val-track"><div class="val-fill" style="width:100%;background:var(--buy)"></div></div>
+          <div class="val-count">620</div>
+        </div>
+        <div class="val-row">
+          <div class="val-label">$100+</div>
+          <div class="val-track"><div class="val-fill" style="width:63%;background:var(--cyan)"></div></div>
+          <div class="val-count">390</div>
+        </div>
+      </div>
+
+      <!-- Confidence -->
+      <div class="card">
+        <div class="label">Price Confidence</div>
+        <div class="conf-row">
+          <div class="conf-score" style="color:var(--buy)">91<span class="conf-unit">%</span></div>
+          <div>
+            <div style="font-size:12px;color:var(--t2)">14 items flagged</div>
+            <div style="font-size:10px;color:var(--t3)">suspect retail pricing</div>
+          </div>
+        </div>
+        <button class="validate-btn">Validate Pricing</button>
+      </div>
+
+      <!-- SKU alert -->
+      <div class="sku-alert">
+        <span class="sku-label">Deep SKU Alert</span>
+        <span class="sku-tag">Opalhouse Throw Pillow <span class="count">x42</span></span>
+        <span class="sku-tag">Threshold Curtain Panel <span class="count">x28</span></span>
+      </div>
+    </div>
+
+    <!-- Top items -->
+    <div>
+      <div class="label" style="margin-bottom:8px">Top Items by Value</div>
+      <div class="item-grid">
+        <div class="item-card">
+          <div class="item-cat-tag" style="background:var(--cyan-light);color:var(--cyan)">Bedding</div>
+          <div class="item-name">Casaluna Comforter Queen</div>
+          <div class="item-price" style="color:var(--navy)">$189.99</div>
+        </div>
+        <div class="item-card">
+          <div class="item-cat-tag" style="background:#f0eef8;color:#6b5ca5">Furniture</div>
+          <div class="item-name">Project 62 Bookshelf</div>
+          <div class="item-price" style="color:var(--navy)">$174.99</div>
+        </div>
+        <div class="item-card">
+          <div class="item-cat-tag" style="background:var(--orange-light);color:var(--orange)">Kitchen</div>
+          <div class="item-name">KitchenAid Attachment</div>
+          <div class="item-price" style="color:var(--navy)">$149.99</div>
+        </div>
+        <div class="item-card">
+          <div class="item-cat-tag" style="background:#fef3e2;color:#c49215">Lighting</div>
+          <div class="item-name">Threshold Floor Lamp</div>
+          <div class="item-price" style="color:var(--navy)">$129.99</div>
+        </div>
+        <div class="item-card">
+          <div class="item-cat-tag" style="background:var(--cyan-light);color:var(--cyan)">Bedding</div>
+          <div class="item-name">Casaluna Sheet Set King</div>
+          <div class="item-price" style="color:var(--navy)">$119.99</div>
+        </div>
+        <div class="item-card">
+          <div class="item-cat-tag" style="background:var(--buy-bg);color:var(--buy)">Toys</div>
+          <div class="item-name">LEGO City Set</div>
+          <div class="item-price" style="color:var(--navy)">$99.99</div>
+        </div>
+        <div class="item-card">
+          <div class="item-cat-tag" style="background:#f0eef8;color:#6b5ca5">Wall Art</div>
+          <div class="item-name">Threshold Wall Art</div>
+          <div class="item-price" style="color:var(--navy)">$89.99</div>
+        </div>
+        <div class="item-card">
+          <div class="item-cat-tag" style="background:var(--pass-bg);color:var(--pass)">Rugs</div>
+          <div class="item-name">Threshold Rug 5x7</div>
+          <div class="item-price" style="color:var(--navy)">$79.99</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="concept-label">Option C: Clear Day -- Light, clean, high-contrast, great in bright store lighting</div>
+</body>
+</html>
