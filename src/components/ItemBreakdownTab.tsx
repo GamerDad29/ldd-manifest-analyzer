@@ -92,8 +92,20 @@ export function ItemBreakdownTab({ a }: ItemBreakdownTabProps) {
                   marginBottom: 4, whiteSpace: 'nowrap',
                   overflow: 'hidden', textOverflow: 'ellipsis',
                 }}>{item.nm}</div>
-                <div style={{ fontSize: 10, color: C.t3, marginBottom: 4 }}>
-                  Qty: {item.qt} &middot; SKU: {fakeSku(item.nm, item.id)}
+                {item.brand && (
+                  <div style={{ fontSize: 10, color: C.t2, marginBottom: 2, fontWeight: 600 }}>
+                    {item.brand}
+                  </div>
+                )}
+                <div style={{ fontSize: 10, color: C.t3, marginBottom: 2 }}>
+                  Qty: {item.qt}
+                  {item.condition && item.condition !== 'NEW' && (
+                    <span style={{ color: C.consider }}> &middot; {item.condition}</span>
+                  )}
+                </div>
+                <div style={{ fontSize: 9, color: C.t3, marginBottom: 4 }}>
+                  {item.tcin ? `TCIN: ${item.tcin}` : `SKU: ${fakeSku(item.nm, item.id)}`}
+                  {item.upc && ` &middot; UPC: ${item.upc}`}
                 </div>
                 <div style={{
                   fontFamily: "'DM Serif Display', serif",

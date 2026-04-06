@@ -8,13 +8,24 @@ export interface Item {
   id: number;
   nm: string;    // product name
   cat: string;   // category name
-  rp: number;    // retail price
+  rp: number;    // retail price (unit)
   qt: number;    // quantity
   wr: number;    // waste rate (0-1)
   sr: number;    // sell rate (0-1)
   pf: number;    // preferred category (1 = yes, 0 = no)
   se: SeasonalInfo | null;
   sp: boolean;   // suspect pricing flag
+  // Real manifest fields (optional, only present for parsed CSVs)
+  itemNum?: string;     // B-Stock item ID (LPTG...)
+  brand?: string;       // manufacturer
+  upc?: string;         // barcode
+  tcin?: string;        // Target.com product ID (for images)
+  condition?: string;   // NEW, USED_GOOD, etc.
+  sellerCat?: string;   // seller category
+  subcat?: string;      // subcategory
+  palletId?: string;    // pallet ID
+  origin?: string;      // country of origin
+  department?: string;  // Target department
 }
 
 export interface CategoryData {
@@ -74,4 +85,11 @@ export interface Load {
   fr: number;      // freight
   end: string;     // auction end ISO
   hue: number;     // ambient hue (legacy, kept for data compat)
+  // Real auction metadata (optional, for parsed loads)
+  condition?: string;     // New, Used, Mixed
+  category?: string;      // Toys, Outdoor Sports, etc.
+  inventoryType?: string; // Overstock, Returns, Salvage
+  shipmentSize?: string;  // "1 LTL / 3 Pallets", "Truckload (26 Pallets)"
+  palletCount?: number;   // number of pallets
+  source?: 'mock' | 'csv' | 'scrape';
 }

@@ -2,13 +2,15 @@ import { useState, useMemo, useCallback, useEffect } from 'react';
 import { C } from './tokens';
 import { LOADS } from './data/loads';
 import { analyze } from './data/analyzer';
+import { readFileAsText } from './data/csv-parser';
 import { Header } from './components/Header';
 import { LeftPanel } from './components/LeftPanel';
 import { LoadDrawer } from './components/LoadDrawer';
 import { OverviewTab } from './components/OverviewTab';
 import { ItemBreakdownTab } from './components/ItemBreakdownTab';
 import { BidModelerTab } from './components/BidModelerTab';
-import type { AnalysisResult } from './types';
+import { UploadModal } from './components/UploadModal';
+import type { Load, AnalysisResult } from './types';
 
 type TabKey = 'overview' | 'items' | 'bid';
 
@@ -19,30 +21,48 @@ const TABS: { k: TabKey; l: string }[] = [
 ];
 
 export default function App() {
+  const [loads, setLoads] = useState<Load[]>(LOADS);
   const [selectedId, setSelectedId] = useState(LOADS[0]!.id);
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [activeTab, setActiveTab] = useState<TabKey>('overview');
   const [bid, setBid] = useState<number>(0);
+  const [uploadModal, setUploadModal] = useState<{ csvText: string; filename: string } | null>(null);
 
-  // Pre-compute analyses for all loads
+  // Compute analyses for all loads
   const analyses = useMemo(() => {
     const m: Record<string, AnalysisResult> = {};
-    LOADS.forEach(l => { m[l.id] = analyze(l); });
+    loads.forEach(l => { m[l.id] = analyze(l); });
     return m;
-  }, []);
+  }, [loads]);
 
-  const load = LOADS.find(l => l.id === selectedId)!;
-  const a = analyses[selectedId]!;
+  const load = loads.find(l => l.id === selectedId);
+  const a = load ? analyses[selectedId] : undefined;
 
   // Reset bid when switching loads
   useEffect(() => {
-    setBid(Math.round(a.mb));
+    if (a) setBid(Math.round(a.mb));
   }, [selectedId, a]);
 
   const pickLoad = useCallback((id: string) => {
     setSelectedId(id);
     setActiveTab('overview');
     setDrawerOpen(false);
+  }, []);
+
+  const handleUploadCsv = useCallback(async (file: File) => {
+    try {
+      const text = await readFileAsText(file);
+      setUploadModal({ csvText: text, filename: file.name });
+    } catch {
+      console.error('Failed to read CSV file');
+    }
+  }, []);
+
+  const handleUploadConfirm = useCallback((newLoad: Load) => {
+    setLoads(prev => [...prev, newLoad]);
+    setSelectedId(newLoad.id);
+    setActiveTab('overview');
+    setUploadModal(null);
   }, []);
 
   const strongCount = Object.values(analyses).filter(x => x.grade === 'green').length;
@@ -110,12 +130,9 @@ export default function App() {
         strongCount={strongCount}
         onToggleDrawer={() => setDrawerOpen(!drawerOpen)}
         drawerOpen={drawerOpen}
-        onUploadCsv={(file) => {
-          // V1.5: parse CSV and add to loads
-          console.log('CSV uploaded:', file.name);
-        }}
+        onUploadCsv={handleUploadCsv}
         onScanNow={() => {
-          // V1.5: trigger B-Stock API scan
+          // V2.0: trigger B-Stock scraper
           console.log('Scan triggered');
         }}
       />
@@ -123,58 +140,70 @@ export default function App() {
       {/* Load drawer */}
       <LoadDrawer
         open={drawerOpen}
-        loads={LOADS}
+        loads={loads}
         analyses={analyses}
         selectedId={selectedId}
         onSelect={pickLoad}
         onClose={() => setDrawerOpen(false)}
       />
 
+      {/* Upload modal */}
+      {uploadModal && (
+        <UploadModal
+          csvText={uploadModal.csvText}
+          filename={uploadModal.filename}
+          onConfirm={handleUploadConfirm}
+          onCancel={() => setUploadModal(null)}
+        />
+      )}
+
       {/* Main content */}
-      <div style={{
-        position: 'relative', zIndex: 10,
-        height: 'calc(100vh - 56px)',
-        display: 'grid', gridTemplateColumns: '360px 1fr',
-        overflow: 'hidden',
-      }}>
-        {/* Left panel */}
-        <LeftPanel load={load} analysis={a} />
-
-        {/* Right panel */}
+      {load && a && (
         <div style={{
-          padding: '20px 24px', overflowY: 'auto',
-          display: 'flex', flexDirection: 'column', gap: 14,
+          position: 'relative', zIndex: 10,
+          height: 'calc(100vh - 56px)',
+          display: 'grid', gridTemplateColumns: '360px 1fr',
+          overflow: 'hidden',
         }}>
-          {/* Tabs */}
-          <div style={{
-            display: 'flex', gap: 2,
-            background: 'rgba(255,255,255,0.02)', borderRadius: 10,
-            padding: 3, width: 'fit-content',
-          }} role="tablist">
-            {TABS.map(t => (
-              <button
-                key={t.k}
-                role="tab"
-                aria-selected={activeTab === t.k}
-                onClick={() => setActiveTab(t.k)}
-                style={{
-                  padding: '8px 22px', borderRadius: 8,
-                  fontSize: 12, fontWeight: 600,
-                  border: 'none', cursor: 'pointer', fontFamily: 'inherit',
-                  transition: 'background 0.25s, color 0.25s',
-                  background: activeTab === t.k ? C.goldDim : 'transparent',
-                  color: activeTab === t.k ? C.gold : C.t3,
-                }}
-              >{t.l}</button>
-            ))}
-          </div>
+          {/* Left panel */}
+          <LeftPanel load={load} analysis={a} />
 
-          {/* Tab content */}
-          {activeTab === 'overview' && <OverviewTab a={a} />}
-          {activeTab === 'items' && <ItemBreakdownTab a={a} />}
-          {activeTab === 'bid' && <BidModelerTab a={a} bid={bid} onBidChange={setBid} />}
+          {/* Right panel */}
+          <div style={{
+            padding: '20px 24px', overflowY: 'auto',
+            display: 'flex', flexDirection: 'column', gap: 14,
+          }}>
+            {/* Tabs */}
+            <div style={{
+              display: 'flex', gap: 2,
+              background: 'rgba(255,255,255,0.02)', borderRadius: 10,
+              padding: 3, width: 'fit-content',
+            }} role="tablist">
+              {TABS.map(t => (
+                <button
+                  key={t.k}
+                  role="tab"
+                  aria-selected={activeTab === t.k}
+                  onClick={() => setActiveTab(t.k)}
+                  style={{
+                    padding: '8px 22px', borderRadius: 8,
+                    fontSize: 12, fontWeight: 600,
+                    border: 'none', cursor: 'pointer', fontFamily: 'inherit',
+                    transition: 'background 0.25s, color 0.25s',
+                    background: activeTab === t.k ? C.goldDim : 'transparent',
+                    color: activeTab === t.k ? C.gold : C.t3,
+                  }}
+                >{t.l}</button>
+              ))}
+            </div>
+
+            {/* Tab content */}
+            {activeTab === 'overview' && <OverviewTab a={a} />}
+            {activeTab === 'items' && <ItemBreakdownTab a={a} />}
+            {activeTab === 'bid' && <BidModelerTab a={a} bid={bid} onBidChange={setBid} />}
+          </div>
         </div>
-      </div>
+      )}
     </div>
   );
 }
