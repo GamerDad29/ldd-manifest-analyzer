@@ -7,9 +7,11 @@ interface HeaderProps {
   drawerOpen: boolean;
   onUploadCsv: (file: File) => void;
   onScanNow: () => void;
+  dataSource?: 'scraped' | 'mock' | 'loading';
+  scrapedAt?: string | null;
 }
 
-export function Header({ strongCount, onToggleDrawer, drawerOpen, onUploadCsv, onScanNow }: HeaderProps) {
+export function Header({ strongCount, onToggleDrawer, drawerOpen, onUploadCsv, onScanNow, dataSource, scrapedAt }: HeaderProps) {
   const fileRef = useRef<HTMLInputElement>(null);
 
   return (
@@ -63,9 +65,14 @@ export function Header({ strongCount, onToggleDrawer, drawerOpen, onUploadCsv, o
         </div>
         <div style={{
           padding: '6px 16px', borderRadius: 8, fontSize: 11,
-          background: 'rgba(255,255,255,0.02)', color: C.t3,
+          background: dataSource === 'scraped' ? C.cyanDim : 'rgba(255,255,255,0.02)',
+          color: dataSource === 'scraped' ? C.cyan : C.t3,
         }}>
-          Scanned {new Date().toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' })}
+          {dataSource === 'scraped' && scrapedAt
+            ? `Live ${new Date(scrapedAt).toLocaleString('en-US', { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' })}`
+            : dataSource === 'mock'
+              ? 'Demo Data'
+              : 'Scanning...'}
         </div>
 
         {/* Separator dot */}

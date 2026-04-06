@@ -1,8 +1,8 @@
 import { useState, useMemo, useCallback, useEffect } from 'react';
 import { C } from './tokens';
-import { LOADS } from './data/loads';
 import { analyze } from './data/analyzer';
 import { readFileAsText } from './data/csv-parser';
+import { fetchLoads } from './data/load-source';
 import { Header } from './components/Header';
 import { LeftPanel } from './components/LeftPanel';
 import { LoadDrawer } from './components/LoadDrawer';
@@ -21,12 +21,39 @@ const TABS: { k: TabKey; l: string }[] = [
 ];
 
 export default function App() {
-  const [loads, setLoads] = useState<Load[]>(LOADS);
-  const [selectedId, setSelectedId] = useState(LOADS[0]!.id);
+  const [loads, setLoads] = useState<Load[]>([]);
+  const [selectedId, setSelectedId] = useState<string>('');
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [activeTab, setActiveTab] = useState<TabKey>('overview');
   const [bid, setBid] = useState<number>(0);
   const [uploadModal, setUploadModal] = useState<{ csvText: string; filename: string } | null>(null);
+  const [dataSource, setDataSource] = useState<'scraped' | 'mock' | 'loading'>('loading');
+  const [scrapedAt, setScrapedAt] = useState<string | null>(null);
+
+  // Load data on mount: try scraped loads.json, fall back to mock
+  useEffect(() => {
+    fetchLoads().then(result => {
+      setLoads(result.loads);
+      setDataSource(result.source);
+      setScrapedAt(result.scrapedAt);
+      if (result.loads.length > 0) {
+        setSelectedId(result.loads[0]!.id);
+      }
+    });
+  }, []);
+
+  // Re-fetch scraped data (triggered by Scan Now)
+  const handleScanNow = useCallback(() => {
+    setDataSource('loading');
+    fetchLoads().then(result => {
+      setLoads(result.loads);
+      setDataSource(result.source);
+      setScrapedAt(result.scrapedAt);
+      if (result.loads.length > 0 && !result.loads.find(l => l.id === selectedId)) {
+        setSelectedId(result.loads[0]!.id);
+      }
+    });
+  }, [selectedId]);
 
   // Compute analyses for all loads
   const analyses = useMemo(() => {
@@ -66,6 +93,25 @@ export default function App() {
   }, []);
 
   const strongCount = Object.values(analyses).filter(x => x.grade === 'green').length;
+
+  // Loading state
+  if (dataSource === 'loading' || loads.length === 0) {
+    return (
+      <div style={{
+        width: '100vw', height: '100vh',
+        background: C.bg, color: C.t1,
+        fontFamily: "'DM Sans', system-ui, sans-serif",
+        display: 'flex', alignItems: 'center', justifyContent: 'center',
+        flexDirection: 'column', gap: 16,
+      }}>
+        <div style={{
+          fontFamily: "'DM Serif Display', serif",
+          fontSize: 28, color: C.gold,
+        }}>Lucky Duck Dealz</div>
+        <div style={{ fontSize: 13, color: C.t3 }}>Loading auction data...</div>
+      </div>
+    );
+  }
 
   return (
     <div style={{
@@ -131,10 +177,9 @@ export default function App() {
         onToggleDrawer={() => setDrawerOpen(!drawerOpen)}
         drawerOpen={drawerOpen}
         onUploadCsv={handleUploadCsv}
-        onScanNow={() => {
-          // V2.0: trigger B-Stock scraper
-          console.log('Scan triggered');
-        }}
+        onScanNow={handleScanNow}
+        dataSource={dataSource}
+        scrapedAt={scrapedAt}
       />
 
       {/* Load drawer */}
