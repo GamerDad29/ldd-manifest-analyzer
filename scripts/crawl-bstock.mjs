@@ -294,31 +294,58 @@ async function main() {
     process.exit(1);
   }
 
-  // ── Step 2: Scrape listing cards ──
+  // ── Step 2: Scrape listing cards (with pagination) ──
   console.log('  Scraping auction listings...');
   await page.waitForSelector('[data-testid="search-result-card"]', { timeout: 15000 });
 
-  const listings = await page.$$eval('[data-testid="search-result-card"]', (cards) => {
-    return cards.map(card => {
-      const get = (tid) => card.querySelector(`[data-testid="${tid}"]`)?.textContent?.trim() || '';
-      // The card itself is an <a> tag with the listing URL
-      const href = card.getAttribute('href') || '';
-      const fullUrl = href.startsWith('/') ? `https://bstock.com${href}` : href;
-      return {
-        title: get('listing-title') || card.getAttribute('aria-label') || '',
-        location: get('listing-location'),
-        price: get('price'),
-        pricePerUnit: get('price-per-unit'),
-        msrp: get('msrp'),
-        percentOfMsrp: get('percent-of-msrp'),
-        condition: get('condition'),
-        inventoryType: get('inventory-type'),
-        url: fullUrl,
-      };
-    });
-  });
+  let allListings = [];
+  let pageNum = 1;
 
-  console.log(`  Found ${listings.length} listings\n`);
+  while (true) {
+    const pageListings = await page.$$eval('[data-testid="search-result-card"]', (cards) => {
+      return cards.map(card => {
+        const get = (tid) => card.querySelector(`[data-testid="${tid}"]`)?.textContent?.trim() || '';
+        const href = card.getAttribute('href') || '';
+        const fullUrl = href.startsWith('/') ? `https://bstock.com${href}` : href;
+        return {
+          title: get('listing-title') || card.getAttribute('aria-label') || '',
+          location: get('listing-location'),
+          price: get('price'),
+          pricePerUnit: get('price-per-unit'),
+          msrp: get('msrp'),
+          percentOfMsrp: get('percent-of-msrp'),
+          condition: get('condition'),
+          inventoryType: get('inventory-type'),
+          url: fullUrl,
+        };
+      });
+    });
+
+    console.log(`  Page ${pageNum}: ${pageListings.length} listings`);
+    allListings = allListings.concat(pageListings);
+
+    // Find the "next-page" button specifically by aria-label
+    const nextBtn = await page.$('button[aria-label="next-page"]');
+    if (!nextBtn) break;
+
+    // Check if it's disabled
+    const isDisabled = await nextBtn.evaluate(el => el.disabled);
+    if (isDisabled) break;
+
+    await nextBtn.click();
+    pageNum++;
+    await page.waitForTimeout(2500);
+
+    // Wait for cards to reload
+    try {
+      await page.waitForSelector('[data-testid="search-result-card"]', { timeout: 10000 });
+    } catch {
+      break;
+    }
+  }
+
+  const listings = allListings;
+  console.log(`\n  Total: ${listings.length} listings across ${pageNum} pages\n`);
 
   const toProcess = listings.slice(0, MAX_LISTINGS);
   const loads = [];
@@ -371,14 +398,23 @@ async function main() {
 
       console.log(`    ${detail.condition || listing.condition} | ${detail.location || listing.location} | ${listing.msrp}`);
 
+      // Scroll down to reveal manifest section
+      await page.evaluate(() => window.scrollTo(0, document.body.scrollHeight));
+      await page.waitForTimeout(1500);
+
       // Try to download manifest CSV
-      const manifestLink = await page.$('a[href*="manifest" i], a[href*="Manifest" i], a[download*="manifest" i], a[download*="Manifest" i]');
-      if (manifestLink) {
+      // B-Stock uses <button> elements, not <a> links
+      // Priority: "Download Full Manifest" > "Download Manifest" > "download it"
+      const manifestBtn = await page.$('button:has-text("Download Full Manifest")')
+        || await page.$('button:has-text("Download Manifest")')
+        || await page.$('button:has-text("download it")');
+
+      if (manifestBtn) {
         console.log('    Downloading manifest...');
         try {
           const [download] = await Promise.all([
-            page.waitForEvent('download', { timeout: 15000 }),
-            manifestLink.click(),
+            page.waitForEvent('download', { timeout: 20000 }),
+            manifestBtn.click(),
           ]);
           const savePath = join(DOWNLOAD_DIR, `manifest-${listingId}.csv`);
           await download.saveAs(savePath);
@@ -394,7 +430,7 @@ async function main() {
           console.log(`    Manifest download failed: ${dlErr.message}`);
         }
       } else {
-        console.log('    No manifest link found');
+        console.log('    No manifest download button found');
       }
 
       // Build load object
@@ -441,10 +477,8 @@ async function main() {
 
   writeFileSync(OUTPUT_FILE, JSON.stringify(output, null, 2));
 
-  // Close only the tab we opened, not the whole browser
-  await page.close();
-  // Disconnect (don't close Chrome)
-  browser.close();
+  // Navigate back to listings page so Chrome is ready for next crawl
+  await page.goto(TARGET_MARKETPLACE, { waitUntil: 'domcontentloaded', timeout: 15000 }).catch(() => {});
 
   console.log(`\n  Summary`);
   console.log(`  -------`);
