@@ -2,40 +2,36 @@
 /**
  * B-Stock Crawler for Lucky Duck Dealz
  *
- * Scrapes the Target liquidation marketplace on B-Stock,
- * downloads manifest CSVs, parses everything, and outputs
- * a single loads.json file that the frontend app consumes.
+ * Connects to your already-running Chrome (with remote debugging)
+ * and scrapes the Target liquidation marketplace on B-Stock.
+ * No CAPTCHA, no bot detection - it's your real browser session.
+ *
+ * Setup (one-time):
+ *   1. Run: scripts/start-chrome-debug.bat
+ *      (or restart Chrome with --remote-debugging-port=9222)
+ *   2. Log into B-Stock in Chrome
  *
  * Usage:
- *   node scripts/crawl-bstock.mjs
- *   node scripts/crawl-bstock.mjs --headed    (visible browser for debugging)
- *   node scripts/crawl-bstock.mjs --max=5     (limit to 5 listings)
+ *   node scripts/crawl-bstock.mjs              (scrape all listings)
+ *   node scripts/crawl-bstock.mjs --max=5      (limit to 5 listings)
  *
- * The script will:
- * 1. Launch a browser and navigate to B-Stock Target marketplace
- * 2. If not logged in, pause for manual login
- * 3. Scrape all visible auction listings
- * 4. Visit each listing detail page
- * 5. Download manifest CSVs where available
- * 6. Parse manifests through the analysis engine
- * 7. Output public/loads.json for the frontend
+ * Output: public/loads.json (consumed by the frontend app)
  */
 
 import { chromium } from 'playwright';
 import { readFileSync, writeFileSync, mkdirSync, existsSync } from 'fs';
 import { join, resolve } from 'path';
-import { createInterface } from 'readline';
 
 const PROJECT_ROOT = resolve(import.meta.dirname, '..');
 const OUTPUT_DIR = join(PROJECT_ROOT, 'public');
 const DOWNLOAD_DIR = join(PROJECT_ROOT, 'downloads');
 const OUTPUT_FILE = join(OUTPUT_DIR, 'loads.json');
 
-const TARGET_MARKETPLACE = 'https://bstock.com/buy/browse/target';
+const TARGET_MARKETPLACE = 'https://bstock.com/buy/seller/target';
+const CDP_URL = 'http://127.0.0.1:9222';
 
 // ── CLI args ────────────────────────────────────────────────────
 const args = process.argv.slice(2);
-const HEADED = args.includes('--headed');
 const MAX_LISTINGS = (() => {
   const m = args.find(a => a.startsWith('--max='));
   return m ? parseInt(m.split('=')[1], 10) : 50;
@@ -200,31 +196,6 @@ function estimateFreight(pallets) {
   return 4500;
 }
 
-function extractFromTitle(title) {
-  const units = (title.match(/([\d,]+)\s*Units?/i) || [])[1];
-  const pallets = (title.match(/(\d+)\s*Pallet/i) || [])[1];
-  const msrp = (title.match(/Ext\.\s*Retail\s*\$([\d,.]+)/i) || [])[1];
-  const brands = (title.match(/by\s+(.+?)(?:,\s*[A-Z]{2}\b)/i) || [])[1];
-  const location = (title.match(/,\s*([^,]+,\s*[A-Z]{2})\s*$/i) || [])[1];
-  return {
-    unitCount: units ? parseInt(units.replace(/,/g, ''), 10) : 0,
-    palletCount: pallets ? parseInt(pallets, 10) : 0,
-    msrpValue: msrp ? parseFloat(msrp.replace(/,/g, '')) : 0,
-    brands: brands ? brands.trim() : '',
-    location: location ? location.trim() : '',
-  };
-}
-
-function categoryHue(cat) {
-  const hues = {
-    'Toys': 30, 'Outdoor Sports': 150, 'Home Decor': 210,
-    'Bedding & Bath': 260, 'Furniture': 180, 'Lighting': 45,
-    'Kitchen': 15, 'Clothing': 330, 'Health & Beauty': 300,
-    'Electronics': 240, 'Baby': 350,
-  };
-  return hues[cat] ?? 210;
-}
-
 function extractCategory(title) {
   const lower = title.toLowerCase();
   if (lower.includes('toy') || lower.includes('lego') || lower.includes('squishmallow')) return 'Toys';
@@ -242,11 +213,14 @@ function extractCategory(title) {
   return 'Mixed';
 }
 
-async function waitForUser(msg) {
-  const rl = createInterface({ input: process.stdin, output: process.stdout });
-  return new Promise(resolve => {
-    rl.question(msg, () => { rl.close(); resolve(); });
-  });
+function categoryHue(cat) {
+  const hues = {
+    'Toys': 30, 'Outdoor Sports': 150, 'Home Decor': 210,
+    'Bedding & Bath': 260, 'Furniture': 180, 'Lighting': 45,
+    'Kitchen': 15, 'Clothing': 330, 'Health & Beauty': 300,
+    'Electronics': 240, 'Baby': 350,
+  };
+  return hues[cat] ?? 210;
 }
 
 // ── Main Crawler ────────────────────────────────────────────────
@@ -255,48 +229,69 @@ async function main() {
   console.log('\n  Lucky Duck Dealz - B-Stock Crawler');
   console.log('  ===================================\n');
 
-  // Ensure directories exist
   mkdirSync(OUTPUT_DIR, { recursive: true });
   mkdirSync(DOWNLOAD_DIR, { recursive: true });
 
-  // Launch browser
-  console.log(`  Launching browser (${HEADED ? 'headed' : 'headless'})...`);
-  const browser = await chromium.launch({
-    headless: !HEADED,
-    // Use a persistent context so login session is saved
-    args: ['--disable-blink-features=AutomationControlled'],
-  });
+  // ── Connect to running Chrome via CDP ──
+  console.log('  Connecting to Chrome (port 9222)...');
+  let browser;
+  try {
+    browser = await chromium.connectOverCDP(CDP_URL);
+  } catch (err) {
+    console.log('\n  Could not connect to Chrome on port 9222.');
+    console.log('  Start Chrome with remote debugging first:\n');
+    console.log('    scripts\\start-chrome-debug.bat\n');
+    console.log('  Or manually:');
+    console.log('    chrome.exe --remote-debugging-port=9222\n');
+    process.exit(1);
+  }
 
-  const context = await browser.newContext({
-    userAgent: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
-    acceptDownloads: true,
-  });
+  console.log('  Connected to Chrome!\n');
 
-  const page = await context.newPage();
+  // Get the default context (your real Chrome session)
+  const contexts = browser.contexts();
+  const context = contexts[0];
+  if (!context) {
+    console.log('  No browser context found. Is Chrome open?');
+    process.exit(1);
+  }
 
-  // ── Step 1: Navigate to Target marketplace ──
-  console.log('  Navigating to B-Stock Target marketplace...');
-  await page.goto(TARGET_MARKETPLACE, { waitUntil: 'domcontentloaded', timeout: 30000 });
-  await page.waitForTimeout(2000);
-
-  // Check if we need to log in
-  const isLoggedIn = await page.$('[data-testid="search-result-card"]');
-  if (!isLoggedIn) {
-    console.log('\n  !! Not logged in. Please log in to B-Stock in the browser window.');
-    console.log('  !! The browser window should be visible (use --headed if not).\n');
-
-    if (!HEADED) {
-      console.log('  Tip: Re-run with --headed flag to see the browser:');
-      console.log('    node scripts/crawl-bstock.mjs --headed\n');
-      await browser.close();
-      process.exit(1);
+  // ── Step 1: Find or open the Target marketplace page ──
+  // Check if there's already a tab on the Target listings page
+  const allPages = context.pages();
+  let page = null;
+  for (const p of allPages) {
+    const url = p.url();
+    if (url.includes('bstock.com') && (url.includes('target') || url.includes('Target'))) {
+      page = p;
+      console.log('  Found existing Target tab!');
+      break;
     }
+  }
 
-    await waitForUser('  Press Enter after you have logged in and can see listings...');
-
-    // Navigate again after login
+  if (!page) {
+    // Open a new tab
+    page = await context.newPage();
+    console.log('  Opening Target marketplace in new tab...');
     await page.goto(TARGET_MARKETPLACE, { waitUntil: 'domcontentloaded', timeout: 30000 });
     await page.waitForTimeout(3000);
+  }
+
+  // Wait for listings to appear
+  let hasListings = await page.$('[data-testid="search-result-card"]');
+  if (!hasListings) {
+    // Maybe the page needs a refresh
+    console.log('  No listings visible, refreshing...');
+    await page.reload({ waitUntil: 'domcontentloaded', timeout: 30000 });
+    await page.waitForTimeout(3000);
+    hasListings = await page.$('[data-testid="search-result-card"]');
+  }
+
+  if (!hasListings) {
+    console.log('  No listings found. Make sure you are logged into B-Stock');
+    console.log('  and can see Target auction listings in Chrome.\n');
+    browser.close();
+    process.exit(1);
   }
 
   // ── Step 2: Scrape listing cards ──
@@ -306,9 +301,11 @@ async function main() {
   const listings = await page.$$eval('[data-testid="search-result-card"]', (cards) => {
     return cards.map(card => {
       const get = (tid) => card.querySelector(`[data-testid="${tid}"]`)?.textContent?.trim() || '';
-      const link = card.querySelector('a[href*="/listings/details/"]');
+      // The card itself is an <a> tag with the listing URL
+      const href = card.getAttribute('href') || '';
+      const fullUrl = href.startsWith('/') ? `https://bstock.com${href}` : href;
       return {
-        title: get('listing-title'),
+        title: get('listing-title') || card.getAttribute('aria-label') || '',
         location: get('listing-location'),
         price: get('price'),
         pricePerUnit: get('price-per-unit'),
@@ -316,45 +313,47 @@ async function main() {
         percentOfMsrp: get('percent-of-msrp'),
         condition: get('condition'),
         inventoryType: get('inventory-type'),
-        url: link ? link.href : '',
+        url: fullUrl,
       };
     });
   });
 
-  console.log(`  Found ${listings.length} listings on page 1`);
-
-  // TODO: pagination - scrape additional pages if needed
+  console.log(`  Found ${listings.length} listings\n`);
 
   const toProcess = listings.slice(0, MAX_LISTINGS);
   const loads = [];
   let processed = 0;
 
-  // ── Step 3: Visit each listing detail page + download manifest ──
+  // ── Step 3: Visit each listing detail page ──
   for (const listing of toProcess) {
     processed++;
     const shortTitle = listing.title.length > 50
       ? listing.title.substring(0, 47) + '...'
       : listing.title;
-    console.log(`\n  [${processed}/${toProcess.length}] ${shortTitle}`);
+    console.log(`  [${processed}/${toProcess.length}] ${shortTitle}`);
 
     if (!listing.url) {
       console.log('    Skipping: no URL');
       continue;
     }
 
-    const parsed = extractFromTitle(listing.title);
     const category = extractCategory(listing.title);
     const listingId = listing.url.split('/').pop() || `listing-${processed}`;
+
+    // Parse metadata from title
+    const unitMatch = listing.title.match(/([\d,]+)\s*Units?/i);
+    const palletMatch = listing.title.match(/(\d+)\s*Pallet/i);
+    const unitCount = unitMatch ? parseInt(unitMatch[1].replace(/,/g, ''), 10) : 0;
+    const palletCount = palletMatch ? parseInt(palletMatch[1], 10) : 1;
 
     let items = [];
     let manifestDownloaded = false;
 
     try {
-      // Navigate to detail page
       await page.goto(listing.url, { waitUntil: 'domcontentloaded', timeout: 20000 });
-      await page.waitForTimeout(1500);
+      await page.waitForTimeout(2000);
 
-      // Extract detail page data
+      // Extract detail page metadata
       const detail = await page.evaluate(() => {
         const get = (tid) => document.querySelector(`[data-testid="${tid}"]`)?.textContent?.trim() || '';
         return {
@@ -370,23 +369,20 @@ async function main() {
         };
       });
 
-      console.log(`    Condition: ${detail.condition || listing.condition}`);
-      console.log(`    Location: ${detail.location || listing.location}`);
+      console.log(`    ${detail.condition || listing.condition} | ${detail.location || listing.location} | ${listing.msrp}`);
 
-      // Try to download manifest
-      const manifestLink = await page.$('a[href*="manifest"], a[href*="Manifest"], a[download]');
+      // Try to download manifest CSV
+      const manifestLink = await page.$('a[href*="manifest" i], a[href*="Manifest" i], a[download*="manifest" i], a[download*="Manifest" i]');
       if (manifestLink) {
         console.log('    Downloading manifest...');
         try {
           const [download] = await Promise.all([
-            page.waitForEvent('download', { timeout: 10000 }),
+            page.waitForEvent('download', { timeout: 15000 }),
             manifestLink.click(),
           ]);
           const savePath = join(DOWNLOAD_DIR, `manifest-${listingId}.csv`);
           await download.saveAs(savePath);
-          console.log(`    Saved: manifest-${listingId}.csv`);
 
-          // Parse the CSV
           const csvText = readFileSync(savePath, 'utf-8');
           const rows = parseCsvText(csvText);
           if (rows.length > 0) {
@@ -398,25 +394,25 @@ async function main() {
           console.log(`    Manifest download failed: ${dlErr.message}`);
         }
       } else {
-        console.log('    No manifest download link found');
+        console.log('    No manifest link found');
       }
 
-      // Build the load object
-      const palletCount = parseInt(detail.palletSpaces, 10) || parsed.palletCount || 1;
+      // Build load object
+      const actualPallets = parseInt(detail.palletSpaces, 10) || palletCount;
       const load = {
         id: 'BS-' + listingId.substring(0, 8).toUpperCase(),
-        t: listing.title.length > 60 ? listing.title.substring(0, 57) + '...' : listing.title,
-        sub: detail.location || listing.location || parsed.location,
+        t: listing.title.length > 70 ? listing.title.substring(0, 67) + '...' : listing.title,
+        sub: detail.location || listing.location,
         items,
-        fr: estimateFreight(palletCount),
+        fr: estimateFreight(actualPallets),
         end: new Date(Date.now() + 86400000).toISOString(),
         hue: categoryHue(category),
         condition: detail.condition || listing.condition,
         category: detail.category || category,
         inventoryType: detail.inventoryType || listing.inventoryType,
-        shipmentSize: detail.shipmentSize || `${palletCount} Pallet${palletCount !== 1 ? 's' : ''}`,
-        palletCount,
-        source: manifestDownloaded ? 'scrape' : 'scrape',
+        shipmentSize: detail.shipmentSize || `${actualPallets} Pallet${actualPallets !== 1 ? 's' : ''}`,
+        palletCount: actualPallets,
+        source: 'scrape',
         bstockUrl: listing.url,
         msrp: listing.msrp,
         percentOfMsrp: listing.percentOfMsrp,
@@ -428,15 +424,12 @@ async function main() {
       };
 
       loads.push(load);
-
     } catch (err) {
       console.log(`    Error: ${err.message}`);
     }
   }
 
   // ── Step 4: Output loads.json ──
-  console.log(`\n\n  Writing ${loads.length} loads to ${OUTPUT_FILE}...`);
-
   const output = {
     scrapedAt: new Date().toISOString(),
     source: 'B-Stock Target Marketplace',
@@ -447,17 +440,18 @@ async function main() {
   };
 
   writeFileSync(OUTPUT_FILE, JSON.stringify(output, null, 2));
-  console.log('  Done!\n');
 
-  // Summary
-  console.log('  Summary');
-  console.log('  -------');
+  // Close only the tab we opened, not the whole browser
+  await page.close();
+  // Disconnect (don't close Chrome)
+  browser.close();
+
+  console.log(`\n  Summary`);
+  console.log(`  -------`);
   console.log(`  Total listings found:  ${listings.length}`);
   console.log(`  Processed:             ${loads.length}`);
   console.log(`  With manifest:         ${output.withManifest}`);
   console.log(`  Output:                ${OUTPUT_FILE}\n`);
-
-  await browser.close();
 }
 
 main().catch(err => {
